@@ -1,0 +1,62 @@
+from django.db import models
+from accounts.models import Workspace
+
+class Category(models.Model):
+    CATEGORY_TYPE_CHOICES = [
+        ('INCOME', 'Receita'),
+        ('EXPENSE', 'Despesa'),
+    ]
+
+    workspace = models.ForeignKey(
+        Workspace,
+        on_delete=models.CASCADE,
+        related_name='categories',
+        verbose_name='Workspace'
+    )
+    name = models.CharField('Nome da Categoria', max_length=80)
+    category_type = models.CharField('Tipo', max_length=10, choices=CATEGORY_TYPE_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Categoria'
+        verbose_name_plural = 'Categorias'
+        unique_together = ('workspace', 'name', 'category_type')
+
+    def __str__(self):
+        return f"{self.name} ({self.get_category_type_display()}) - {self.workspace.name}"
+
+
+class Transaction(models.Model):
+    STATUS_CHOICES = [
+        ('PENDING', 'Pendente'),
+        ('PAID', 'Concluído/Pago'),
+    ]
+
+    workspace = models.ForeignKey(
+        Workspace,
+        on_delete=models.CASCADE,
+        related_name='transactions',
+        verbose_name='Workspace'
+    )
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='transactions',
+        verbose_name='Categoria'
+    )
+    description = models.CharField('Descrição', max_length=255)
+    amount = models.DecimalField('Valor (R$)', max_digits=12, decimal_places=2)
+    transaction_date = models.DateField('Data da Transação')
+    status = models.CharField('Status', max_length=10, choices=STATUS_CHOICES, default='PAID')
+    notes = models.TextField('Observações', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Transação'
+        verbose_name_plural = 'Transações'
+        ordering = ['-transaction_date', '-created_at']
+
+    def __str__(self):
+        return f"{self.description} - R$ {self.amount} ({self.workspace.name})"
