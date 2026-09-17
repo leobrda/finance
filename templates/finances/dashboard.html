@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Financeiro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <header class="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+            <span class="text-xl font-bold text-gray-800">Controle Financeiro</span>
+            <span class="text-xs bg-indigo-100 text-indigo-800 px-2.5 py-0.5 rounded-full font-semibold">SaaS</span>
+        </div>
+        <div class="flex items-center space-x-4 text-sm">
+            <span class="text-gray-600">Olá, <strong>{{ request.user.first_name|default:request.user.username }}</strong></span>
+            <form action="{% url 'logout' %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="text-red-600 hover:underline">Sair</button>
+            </form>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        <div class="flex justify-between items-center mb-8">
+            <div class="flex space-x-3">
+                {% for ws in workspaces %}
+                    <a href="?workspace={{ ws.id }}"
+                       class="px-5 py-2.5 rounded-lg text-sm font-semibold transition shadow-sm
+                       {% if ws.id == current_workspace.id %}
+                            bg-indigo-600 text-white
+                       {% else %}
+                            bg-white text-gray-700 border border-gray-300 hover:bg-gray-100
+                       {% endif %}">
+                        {{ ws.name }}
+                    </a>
+                {% endfor %}
+            </div>
+
+            <button onclick="document.getElementById('modalTransaction').classList.remove('hidden')"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold flex items-center shadow-sm">
+                + Nova Transação
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                <p class="text-sm font-medium text-gray-500">Receitas Totais</p>
+                <p class="text-2xl font-bold text-emerald-600 mt-2">R$ {{ total_income }}</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                <p class="text-sm font-medium text-gray-500">Despesas Totais</p>
+                <p class="text-2xl font-bold text-rose-600 mt-2">R$ {{ total_expense }}</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                <p class="text-sm font-medium text-gray-500">Saldo Atual</p>
+                <p class="text-2xl font-bold {% if balance >= 0 %}text-indigo-600{% else %}text-rose-600{% endif %} mt-2">
+                    R$ {{ balance }}
+                </p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div class="p-5 border-b border-gray-100">
+                <h3 class="text-base font-semibold text-gray-800">
+                    Últimos Lançamentos - {{ current_workspace.name }}
+                </h3>
+            </div>
+            <table class="w-full text-left text-sm text-gray-600">
+                <thead class="bg-gray-50 text-xs uppercase text-gray-500">
+                    <tr>
+                        <th class="px-6 py-3">Descrição</th>
+                        <th class="px-6 py-3">Categoria</th>
+                        <th class="px-6 py-3">Data</th>
+                        <th class="px-6 py-3">Valor</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for t in transactions %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 font-medium text-gray-800">{{ t.description }}</td>
+                        <td class="px-6 py-4">{{ t.category.name|default:"Sem categoria" }}</td>
+                        <td class="px-6 py-4">{{ t.transaction_date|date:"d/m/Y" }}</td>
+                        <td class="px-6 py-4 font-semibold {% if t.category.category_type == 'INCOME' %}text-emerald-600{% else %}text-rose-600{% endif %}">
+                            {% if t.category.category_type == 'INCOME' %}+{% else %}-{% endif %} R$ {{ t.amount }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="px-6 py-8 text-center text-gray-400">
+                            Nenhuma transação cadastrada neste workspace.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Modal Nova Transação -->
+    <div id="modalTransaction" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-gray-800">Nova Transação em {{ current_workspace.name }}</h3>
+                <button onclick="document.getElementById('modalTransaction').classList.add('hidden')" class="text-gray-400 hover:text-gray-600">&times;</button>
+            </div>
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Descrição</label>
+                    {{ form.description }}
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Valor (R$)</label>
+                    {{ form.amount }}
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Categoria</label>
+                    {{ form.category }}
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Data</label>
+                    {{ form.transaction_date }}
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Observações</label>
+                    {{ form.notes }}
+                </div>
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" onclick="document.getElementById('modalTransaction').classList.add('hidden')"
+                            class="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700">
+                        Salvar Transação
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
