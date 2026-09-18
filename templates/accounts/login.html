@@ -1,29 +1,54 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
-    <title>Login - Gestão Financeira</title>
+    <title>ENTRAR — BRUT. FINANCE</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;900&display=swap');
+        body { font-family: 'Space Grotesk', sans-serif; }
+    </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
-    <div class="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
-        <h2 class="text-2xl font-bold text-gray-800 text-center mb-6">Acessar Sistema</h2>
-        <form method="post" class="space-y-4">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit" class="w-full bg-emerald-600 text-white py-2 rounded-lg font-semibold hover:bg-emerald-700 transition">
-                Entrar
-            </button>
+<body class="bg-[#F6F6F2] text-black min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md border-4 border-black bg-white shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]">
+        <div class="p-6 border-b-4 border-black bg-[#FFE600] flex justify-between items-center">
+            <span class="text-3xl font-black tracking-tighter uppercase">FIN.</span>
+            <span class="text-xs font-black uppercase tracking-widest border-2 border-black px-2 py-0.5 bg-white">ACESSO</span>
+        </div>
 
-            <div class="text-right mt-2">
-                <a href="{% url 'password_reset_request' %}" class="text-xs text-gray-500 hover:text-indigo-600 underline">
-                    Esqueceu sua senha?
+        <div class="p-8">
+            {% if form.errors %}
+                <div class="border-2 border-black bg-[#FF4A22] text-white p-3 mb-6 text-xs font-bold uppercase tracking-wider">
+                    Credenciais incorretas. Verifique o utilizador e a palavra-passe.
+                </div>
+            {% endif %}
+
+            <form method="post" class="space-y-5">
+                {% csrf_token %}
+                <div>
+                    <label class="block text-xs font-black uppercase tracking-widest mb-1">Nome de Usuário</label>
+                    <input type="text" name="username" autofocus required class="w-full border-2 border-black p-3 text-sm outline-none focus:bg-[#FFE600] font-bold">
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs font-black uppercase tracking-widest">Senha</label>
+                        <a href="{% url 'password_reset_request' %}" class="text-[11px] font-bold uppercase hover:text-[#FF4A22] underline">Esqueci minha senha</a>
+                    </div>
+                    <input type="password" name="password" required class="w-full border-2 border-black p-3 text-sm outline-none focus:bg-[#FFE600] font-bold">
+                </div>
+
+                <button type="submit" class="w-full py-4 bg-black text-white hover:bg-[#FF4A22] transition border-2 border-black text-xs font-black uppercase tracking-widest">
+                    Entrar na Aplicação →
+                </button>
+            </form>
+
+            <div class="mt-8 pt-6 border-t-2 border-black flex justify-between items-center text-xs font-bold uppercase">
+                <span>Sem conta ativa?</span>
+                <a href="{% url 'register' %}" class="bg-[#FFE600] border-2 border-black px-3 py-1.5 hover:bg-black hover:text-white transition">
+                    Criar Conta
                 </a>
             </div>
-        </form>
-        <p class="text-center text-sm text-gray-600 mt-4">
-            Não possui conta? <a href="{% url 'register' %}" class="text-emerald-600 underline">Cadastre-se</a>
-        </p>
+        </div>
     </div>
 </body>
 </html>
