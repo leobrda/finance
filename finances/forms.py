@@ -33,3 +33,18 @@ class TransactionForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if workspace:
             self.fields['category'].queryset = Category.objects.filter(workspace=workspace)
+
+
+class CategoryForm(forms.ModelForm):
+    class Meta:
+        model = Category
+        fields = ['name', 'category_type']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'w-full border-2 border-black p-2.5 text-sm outline-none focus:bg-[#FFE600] font-bold uppercase',
+                'placeholder': 'Ex: Capinhas, Películas, Manutenção...'
+            }),
+            'category_type': forms.Select(attrs={
+                'class': 'w-full border-2 border-black p-2.5 text-sm outline-none bg-white font-bold'
+            }),
+        }
