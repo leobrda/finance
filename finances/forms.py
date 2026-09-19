@@ -14,7 +14,7 @@ class TransactionForm(forms.ModelForm):
 
     class Meta:
         model = Transaction
-        fields = ['description', 'amount', 'category', 'transaction_date', 'notes']
+        fields = ['description', 'amount', 'category','payment_method', 'transaction_date', 'notes']
         widgets = {
             'description': forms.TextInput(attrs={
                 'class': 'w-full border-2 border-black p-2.5 text-sm outline-none focus:bg-[#FFE600] font-bold'
@@ -29,6 +29,9 @@ class TransactionForm(forms.ModelForm):
             'notes': forms.Textarea(attrs={
                 'class': 'w-full border-2 border-black p-2.5 text-sm outline-none focus:bg-[#FFE600]',
                 'rows': 2
+            }),
+            'payment_method': forms.Select(attrs={
+                'class': 'w-full border-2 border-black p-2.5 text-sm outline-none bg-white font-bold'
             }),
         }
 

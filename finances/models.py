@@ -32,6 +32,14 @@ class Transaction(models.Model):
         ('PAID', 'Concluído/Pago'),
     ]
 
+    PAYMENT_METHOD_CHOICES = [
+        ('PIX', 'Pix'),
+        ('CREDIT_CARD', 'Cartão de Crédito'),
+        ('DEBIT_CARD', 'Cartão de Débito'),
+        ('CASH', 'Dinheiro'),
+        ('TRANSFER', 'Transferência / TED'),
+    ]
+
     workspace = models.ForeignKey(
         Workspace,
         on_delete=models.CASCADE,
@@ -49,6 +57,7 @@ class Transaction(models.Model):
     description = models.CharField('Descrição', max_length=255)
     amount = models.DecimalField('Valor (R$)', max_digits=12, decimal_places=2)
     transaction_date = models.DateField('Data da Transação')
+    payment_method = models.CharField('Forma de Pagamento', max_length=20, choices=PAYMENT_METHOD_CHOICES, default='PIX')
     status = models.CharField('Status', max_length=10, choices=STATUS_CHOICES, default='PAID')
     notes = models.TextField('Observações', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
