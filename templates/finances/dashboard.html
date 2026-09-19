@@ -40,7 +40,7 @@
         <div class="border-2 border-black bg-white flex flex-col md:flex-row justify-between items-stretch mb-8">
             <div class="flex flex-wrap items-stretch divide-x-2 divide-black border-b-2 md:border-b-0 border-black">
                 {% for ws in workspaces %}
-                    <a href="?workspace={{ ws.id }}"
+                    <a href="?workspace={{ ws.id }}&year={{ selected_year }}&month={{ selected_month }}"
                        class="px-6 py-4 text-xs font-black uppercase tracking-wider transition flex items-center gap-2
                        {% if ws.id == current_workspace.id %}
                             bg-black text-white
@@ -69,6 +69,40 @@
             </div>
         </div>
 
+        <!-- Barra de Filtro de Período -->
+        <div class="border-2 border-black bg-white p-4 mb-8 flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center gap-2">
+                <i data-lucide="calendar" class="w-4 h-4"></i>
+                <span class="text-xs font-black uppercase tracking-wider">Período de Análise</span>
+            </div>
+
+            <form method="get" class="flex flex-wrap items-center gap-3">
+                <input type="hidden" name="workspace" value="{{ current_workspace.id }}">
+
+                <div class="flex items-center border-2 border-black bg-[#F6F6F2]">
+                    <select name="month" class="bg-transparent text-xs font-black uppercase p-2 outline-none cursor-pointer">
+                        {% for m_num, m_name in months_list %}
+                            <option value="{{ m_num }}" {% if m_num == selected_month %}selected{% endif %}>
+                                {{ m_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <div class="border-l-2 border-black h-full"></div>
+                    <select name="year" class="bg-transparent text-xs font-black uppercase p-2 outline-none cursor-pointer">
+                        {% for y in years_list %}
+                            <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>
+                                {{ y }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button type="submit" class="px-5 py-2 bg-black text-white hover:bg-[#FFE600] hover:text-black transition text-xs font-black uppercase tracking-wider border-2 border-black">
+                    Filtrar
+                </button>
+            </form>
+        </div>
+
         <!-- Cards de Métricas em Grid com Linhas Pretas -->
         <div class="grid grid-cols-1 md:grid-cols-3 border-2 border-black bg-white divide-y-2 md:divide-y-0 md:divide-x-2 divide-black mb-8">
             <div class="p-6">
@@ -77,7 +111,9 @@
                     <span class="border border-black p-1 bg-[#F6F6F2]"><i data-lucide="arrow-up-right" class="w-4 h-4 text-black"></i></span>
                 </div>
                 <p class="text-3xl sm:text-4xl font-black tracking-tight">R$ {{ total_income }}</p>
-                <div class="mt-4 text-[10px] font-bold uppercase tracking-widest text-neutral-400">Workspace Ativo</div>
+                <div class="mt-4 text-[10px] font-bold uppercase tracking-widest text-neutral-400">
+                    Período: {{ selected_month }}/{{ selected_year }}
+                </div>
             </div>
 
             <div class="p-6">
@@ -86,7 +122,9 @@
                     <span class="border border-black p-1 bg-[#F6F6F2]"><i data-lucide="arrow-down-right" class="w-4 h-4 text-[#FF4A22]"></i></span>
                 </div>
                 <p class="text-3xl sm:text-4xl font-black tracking-tight text-[#FF4A22]">R$ {{ total_expense }}</p>
-                <div class="mt-4 text-[10px] font-bold uppercase tracking-widest text-neutral-400">Workspace Ativo</div>
+                <div class="mt-4 text-[10px] font-bold uppercase tracking-widest text-neutral-400">
+                    Período: {{ selected_month }}/{{ selected_year }}
+                </div>
             </div>
 
             <div class="p-6 {% if balance >= 0 %}bg-[#FFE600]{% else %}bg-[#FF4A22] text-white{% endif %}">
@@ -95,7 +133,9 @@
                     <span class="border border-black p-1 bg-white text-black"><i data-lucide="wallet" class="w-4 h-4"></i></span>
                 </div>
                 <p class="text-3xl sm:text-4xl font-black tracking-tight">R$ {{ balance }}</p>
-                <div class="mt-4 text-[10px] font-bold uppercase tracking-widest opacity-70">Disponível em caixa</div>
+                <div class="mt-4 text-[10px] font-bold uppercase tracking-widest opacity-70">
+                    Período: {{ selected_month }}/{{ selected_year }}
+                </div>
             </div>
         </div>
 
@@ -163,7 +203,7 @@
                         {% empty %}
                         <tr>
                             <td colspan="7" class="p-8 text-center text-xs uppercase font-bold text-neutral-400">
-                                Sem movimentações registradas neste espaço.
+                                Sem movimentações registradas neste período.
                             </td>
                         </tr>
                         {% endfor %}
