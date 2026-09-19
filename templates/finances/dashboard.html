@@ -6,6 +6,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Ícones Lucide -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;900&display=swap');
         body {
@@ -135,6 +136,31 @@
                 <p class="text-3xl sm:text-4xl font-black tracking-tight">R$ {{ balance }}</p>
                 <div class="mt-4 text-[10px] font-bold uppercase tracking-widest opacity-70">
                     Período: {{ selected_month }}/{{ selected_year }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Card Gráfico: Divisão de Gastos -->
+        <div class="border-2 border-black bg-white mb-8">
+            <div class="p-4 border-b-2 border-black flex justify-between items-center bg-[#F6F6F2]">
+                <h3 class="text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                    <i data-lucide="pie-chart" class="w-4 h-4"></i> Distribuição de Despesas por Categoria
+                </h3>
+                <span class="text-[10px] font-bold uppercase border border-black px-2 py-0.5 bg-white">
+                    Período: {{ selected_month }}/{{ selected_year }}
+                </span>
+            </div>
+
+            <div class="p-6">
+                <div id="chartContainer" class="flex flex-col md:flex-row items-center justify-around gap-8 {% if not chart_data_json or chart_data_json == '[]' %}hidden{% endif %}">
+                    <div class="w-64 h-64 relative">
+                        <canvas id="expensesChart"></canvas>
+                    </div>
+                    <div id="chartLegendCustom" class="w-full md:w-1/2 flex flex-col gap-2"></div>
+                </div>
+
+                <div id="noChartData" class="{% if chart_data_json and chart_data_json != '[]' %}hidden{% endif %} p-8 text-center text-xs uppercase font-bold text-neutral-400">
+                    Nenhuma despesa registrada neste período para gerar a análise visual.
                 </div>
             </div>
         </div>
@@ -340,6 +366,82 @@
 
     <script>
         lucide.createIcons();
+    </script>
+    <script>
+        const chartLabels = JSON.parse('{{ chart_labels_json|escapejs }}');
+        const chartData = JSON.parse('{{ chart_data_json|escapejs }}');
+
+        if (chartData.length > 0) {
+            const brutalistColors = [
+                '#FFE600', // Amarelo
+                '#FF4A22', // Laranja-vermelho
+                '#000000', // Preto
+                '#737373', // Cinza
+                '#00F0FF', // Ciano
+                '#A3E635'  // Verde-limão
+            ];
+
+            const ctx = document.getElementById('expensesChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        data: chartData,
+                        backgroundColor: brutalistColors.slice(0, chartData.length),
+                        borderColor: '#000000',
+                        borderWidth: 2,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false // Vamos montar uma legenda personalizada estilizada
+                        },
+                        tooltip: {
+                            backgroundColor: '#000000',
+                            titleFont: { family: 'Space Grotesk', weight: 'bold' },
+                            bodyFont: { family: 'Space Grotesk' },
+                            borderColor: '#000000',
+                            borderWidth: 2,
+                            callbacks: {
+                                label: function(context) {
+                                    return ` R$ ${context.parsed.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+
+            // Legenda Customizada Neobrutalista
+            const legendContainer = document.getElementById('chartLegendCustom');
+            const totalExpenseAmount = chartData.reduce((a, b) => a + b, 0);
+
+            chartLabels.forEach((label, idx) => {
+                const val = chartData[idx];
+                const pct = totalExpenseAmount > 0 ? ((val / totalExpenseAmount) * 100).toFixed(1) : 0;
+                const color = brutalistColors[idx % brutalistColors.length];
+
+                const item = document.createElement('div');
+                item.className = 'flex justify-between items-center border-2 border-black p-2.5 bg-[#F6F6F2] font-mono text-xs font-bold';
+                item.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="w-3.5 h-3.5 border border-black inline-block" style="background-color: ${color}"></span>
+                        <span class="font-sans font-bold uppercase text-[11px]">${label}</span>
+                    </div>
+                    <div>
+                        <span>R$ ${val.toFixed(2)}</span>
+                        <span class="text-neutral-500 text-[10px] ml-1">(${pct}%)</span>
+                    </div>
+                `;
+                legendContainer.appendChild(item);
+            });
+        }
     </script>
 </body>
 </html>

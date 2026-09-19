@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
@@ -68,6 +69,8 @@ def dashboard_view(request):
     total_income = 0
     total_expense = 0
     balance = 0
+    chart_labels = []
+    chart_data = []
 
     if current_workspace:
         # Filtro das transações pelo mês e ano selecionados
@@ -89,6 +92,16 @@ def dashboard_view(request):
         total_income = income_agg
         total_expense = expense_agg
         balance = total_income - total_expense
+
+        # Agrupamento de despesas por categoria para o gráfico
+        expense_by_cat = qs.filter(
+            category__category_type='EXPENSE', status='PAID'
+        ).values('category__name').annotate(total=Sum('amount')).order_by('-total')
+
+        for item in expense_by_cat:
+            cat_name = item['category__name'] or 'Sem Categoria'
+            chart_labels.append(cat_name.upper())
+            chart_data.append(float(item['total']))
 
     # Lista de meses para o seletor
     months_list = [
@@ -113,6 +126,8 @@ def dashboard_view(request):
         'selected_month': selected_month,
         'months_list': months_list,
         'years_list': years_list,
+        'chart_labels_json': json.dumps(chart_labels),
+        'chart_data_json': json.dumps(chart_data),
     }
     return render(request, 'finances/dashboard.html', context)
 
