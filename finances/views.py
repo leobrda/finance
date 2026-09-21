@@ -3,7 +3,7 @@ import csv
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from datetime import date
 from accounts.models import Workspace
 from accounts.forms import WorkspaceForm
@@ -30,6 +30,11 @@ def dashboard_view(request):
     except (ValueError, TypeError):
         selected_year = today.year
         selected_month = today.month
+
+    search_query = request.GET.get('q', '').strip()
+    filter_type = request.GET.get('type', '').strip()  # 'INCOME' ou 'EXPENSE'
+    filter_category = request.GET.get('cat', '').strip()  # ID da categoria
+    filter_payment = request.GET.get('payment', '').strip()  # 'PIX', 'CREDIT_CARD', etc.
 
     # Ações POST (Workspace, Categoria, Transação)
     if request.method == 'POST' and 'create_workspace' in request.POST:
@@ -64,6 +69,7 @@ def dashboard_view(request):
     ws_form = WorkspaceForm()
 
     transactions = []
+    workspace_categories = []
     total_income = Decimal('0.00')
     total_expense = Decimal('0.00')
     balance = Decimal('0.00')
@@ -73,28 +79,28 @@ def dashboard_view(request):
     chart_data = []
 
     if current_workspace:
-        qs = Transaction.objects.filter(
+        workspace_categories = Category.objects.filter(workspace=current_workspace).order_by('name')
+
+        # Base do período
+        base_qs = Transaction.objects.filter(
             workspace=current_workspace,
             transaction_date__year=selected_year,
             transaction_date__month=selected_month
         )
-        transactions = qs.order_by('-transaction_date', '-created_at')
 
-        # Realizado (Concluído/Pago)
-        total_income = qs.filter(category__category_type='INCOME', status='PAID').aggregate(Sum('amount'))[
-                           'amount__sum'] or Decimal('0.00')
-        total_expense = qs.filter(category__category_type='EXPENSE', status='PAID').aggregate(Sum('amount'))[
-                            'amount__sum'] or Decimal('0.00')
+        # Métricas e Gráficos sempre refletem o total do mês (sem corte da busca para não mascarar a saúde financeira geral)
+        total_income = base_qs.filter(category__category_type='INCOME', status='PAID').aggregate(Sum('amount'))[
+                           'amount__sum'] or 0
+        total_expense = base_qs.filter(category__category_type='EXPENSE', status='PAID').aggregate(Sum('amount'))[
+                            'amount__sum'] or 0
         balance = total_income - total_expense
 
-        # Previsão (Pendente)
-        pending_income = qs.filter(category__category_type='INCOME', status='PENDING').aggregate(Sum('amount'))[
-                             'amount__sum'] or Decimal('0.00')
-        pending_expense = qs.filter(category__category_type='EXPENSE', status='PENDING').aggregate(Sum('amount'))[
-                              'amount__sum'] or Decimal('0.00')
+        pending_income = base_qs.filter(category__category_type='INCOME', status='PENDING').aggregate(Sum('amount'))[
+                             'amount__sum'] or 0
+        pending_expense = base_qs.filter(category__category_type='EXPENSE', status='PENDING').aggregate(Sum('amount'))[
+                              'amount__sum'] or 0
 
-        # Gráfico de despesas pagas
-        expense_by_cat = qs.filter(
+        expense_by_cat = base_qs.filter(
             category__category_type='EXPENSE', status='PAID'
         ).values('category__name').annotate(total=Sum('amount')).order_by('-total')
 
@@ -102,6 +108,25 @@ def dashboard_view(request):
             cat_name = item['category__name'] or 'Sem Categoria'
             chart_labels.append(cat_name.upper())
             chart_data.append(float(item['total']))
+
+        # Aplicação dos filtros especificamente no extrato / listagem
+        table_qs = base_qs
+
+        if search_query:
+            table_qs = table_qs.filter(
+                Q(description__icontains=search_query) | Q(notes__icontains=search_query)
+            )
+
+        if filter_type in ['INCOME', 'EXPENSE']:
+            table_qs = table_qs.filter(category__category_type=filter_type)
+
+        if filter_category:
+            table_qs = table_qs.filter(category_id=filter_category)
+
+        if filter_payment:
+            table_qs = table_qs.filter(payment_method=filter_payment)
+
+        transactions = table_qs.order_by('-transaction_date', '-created_at')
 
     months_list = [
         (1, 'Janeiro'), (2, 'Fevereiro'), (3, 'Março'),
@@ -114,6 +139,7 @@ def dashboard_view(request):
     context = {
         'workspaces': workspaces,
         'current_workspace': current_workspace,
+        'workspace_categories': workspace_categories,
         'transactions': transactions,
         'total_income': total_income,
         'total_expense': total_expense,
@@ -129,6 +155,11 @@ def dashboard_view(request):
         'years_list': years_list,
         'chart_labels_json': json.dumps(chart_labels),
         'chart_data_json': json.dumps(chart_data),
+        # Filtros aplicados
+        'search_query': search_query,
+        'filter_type': filter_type,
+        'filter_category': filter_category,
+        'filter_payment': filter_payment,
     }
     return render(request, 'finances/dashboard.html', context)
 

@@ -211,6 +211,63 @@
                 </div>
             </div>
 
+            <!-- Barra de Busca Rápida e Filtros Neobrutalista -->
+            <form method="get" class="p-3 border-b-2 border-black bg-white flex flex-wrap items-center gap-2">
+                <input type="hidden" name="workspace" value="{{ current_workspace.id }}">
+                <input type="hidden" name="year" value="{{ selected_year }}">
+                <input type="hidden" name="month" value="{{ selected_month }}">
+
+                <!-- Campo de Busca -->
+                <div class="flex-1 min-w-[200px] flex items-center border-2 border-black bg-[#F6F6F2] px-2.5 py-1.5">
+                    <i data-lucide="search" class="w-4 h-4 text-neutral-500 mr-2"></i>
+                    <input type="text" name="q" value="{{ search_query }}" placeholder="Buscar por descrição ou observações..."
+                           class="w-full bg-transparent text-xs outline-none font-bold uppercase placeholder:normal-case placeholder:font-normal">
+                    {% if search_query %}
+                        <a href="?workspace={{ current_workspace.id }}&year={{ selected_year }}&month={{ selected_month }}" class="text-neutral-400 hover:text-black">
+                            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                        </a>
+                    {% endif %}
+                </div>
+
+                <!-- Filtro de Tipo -->
+                <select name="type" class="border-2 border-black bg-[#F6F6F2] text-xs font-bold uppercase px-2.5 py-2 outline-none cursor-pointer">
+                    <option value="">Tipo (Todos)</option>
+                    <option value="INCOME" {% if filter_type == 'INCOME' %}selected{% endif %}>Receitas (+)</option>
+                    <option value="EXPENSE" {% if filter_type == 'EXPENSE' %}selected{% endif %}>Despesas (-)</option>
+                </select>
+
+                <!-- Filtro de Categoria -->
+                <select name="cat" class="border-2 border-black bg-[#F6F6F2] text-xs font-bold uppercase px-2.5 py-2 outline-none cursor-pointer">
+                    <option value="">Categoria (Todas)</option>
+                    {% for c in workspace_categories %}
+                        <option value="{{ c.id }}" {% if filter_category == c.id|stringformat:"s" %}selected{% endif %}>
+                            {{ c.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <!-- Filtro de Pagamento -->
+                <select name="payment" class="border-2 border-black bg-[#F6F6F2] text-xs font-bold uppercase px-2.5 py-2 outline-none cursor-pointer">
+                    <option value="">Método (Todos)</option>
+                    <option value="PIX" {% if filter_payment == 'PIX' %}selected{% endif %}>Pix</option>
+                    <option value="CREDIT_CARD" {% if filter_payment == 'CREDIT_CARD' %}selected{% endif %}>Crédito</option>
+                    <option value="DEBIT_CARD" {% if filter_payment == 'DEBIT_CARD' %}selected{% endif %}>Débito</option>
+                    <option value="CASH" {% if filter_payment == 'CASH' %}selected{% endif %}>Dinheiro</option>
+                    <option value="TRANSFER" {% if filter_payment == 'TRANSFER' %}selected{% endif %}>TED/Doc</option>
+                </select>
+
+                <button type="submit" class="px-4 py-2 bg-black text-white hover:bg-[#FFE600] hover:text-black transition text-xs font-black uppercase tracking-wider border-2 border-black flex items-center gap-1.5">
+                    <i data-lucide="filter" class="w-3.5 h-3.5"></i> Filtrar
+                </button>
+
+                {% if search_query or filter_type or filter_category or filter_payment %}
+                    <a href="?workspace={{ current_workspace.id }}&year={{ selected_year }}&month={{ selected_month }}"
+                       class="px-3 py-2 bg-stone-200 hover:bg-[#FF4A22] hover:text-white transition text-xs font-black uppercase tracking-wider border-2 border-black" title="Limpar Filtros">
+                        Limpar
+                    </a>
+                {% endif %}
+            </form>
+
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
@@ -282,7 +339,7 @@
                         {% empty %}
                         <tr>
                             <td colspan="8" class="p-8 text-center text-xs uppercase font-bold text-neutral-400">
-                                Sem movimentações registradas neste período.
+                                Sem movimentações registradas neste período ou com os filtros aplicados.
                             </td>
                         </tr>
                         {% endfor %}
