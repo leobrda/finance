@@ -167,13 +167,19 @@
 
         <!-- Tabela de Lançamentos em Estilo Editorial -->
         <div class="border-2 border-black bg-white">
-            <div class="p-4 border-b-2 border-black flex justify-between items-center bg-[#F6F6F2]">
+            <div class="p-4 border-b-2 border-black flex flex-wrap justify-between items-center gap-2 bg-[#F6F6F2]">
                 <h3 class="text-xs font-black uppercase tracking-widest">
                     Extrato de Operações — {{ current_workspace.name }}
                 </h3>
-                <span class="text-[10px] font-bold uppercase border border-black px-2 py-0.5 bg-white">
-                    {{ transactions|length }} Lançamentos
-                </span>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-bold uppercase border border-black px-2 py-1 bg-white">
+                        {{ transactions|length }} Lançamentos
+                    </span>
+                    <a href="{% url 'export_transactions_csv' %}?workspace={{ current_workspace.id }}&year={{ selected_year }}&month={{ selected_month }}"
+                       class="flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-[#FFE600] border-2 border-black text-[10px] font-black uppercase tracking-wider transition">
+                        <i data-lucide="download" class="w-3.5 h-3.5 stroke-[2.5]"></i> Baixar Planilha
+                    </a>
+                </div>
             </div>
 
             <div class="overflow-x-auto">
@@ -399,7 +405,7 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            display: false // Vamos montar uma legenda personalizada estilizada
+                            display: false
                         },
                         tooltip: {
                             backgroundColor: '#000000',

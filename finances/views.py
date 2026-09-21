@@ -1,5 +1,7 @@
 import json
+import csv
 from django.shortcuts import render, redirect
+from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from datetime import date
@@ -159,3 +161,54 @@ def delete_transaction_view(request, pk):
     if request.method == 'POST':
         transaction.delete()
     return redirect(f"/dashboard/?workspace={workspace_id}")
+
+
+@login_required
+def export_transactions_csv(request):
+    workspace_id = request.GET.get('workspace')
+    workspace = get_object_or_404(Workspace, id=workspace_id, user=request.user)
+
+    today = date.today()
+    try:
+        year = int(request.GET.get('year', today.year))
+        month = int(request.GET.get('month', today.month))
+    except (ValueError, TypeError):
+        year = today.year
+        month = today.month
+
+    transactions = Transaction.objects.filter(
+        workspace=workspace,
+        transaction_date__year=year,
+        transaction_date__month=month
+    ).order_by('transaction_date')
+
+    # Configuração da resposta HTTP para download de arquivo CSV
+    filename = f"extrato_{workspace.name.lower().replace(' ', '_')}_{month:02d}_{year}.csv"
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    # Adiciona BOM UTF-8 para o Excel no Windows abrir sem corromper acentos e 'R$'
+    response.write('\ufeff')
+
+    writer = csv.writer(response, delimiter=';')
+    writer.writerow(['Data', 'Descricao', 'Categoria', 'Tipo', 'Forma de Pagamento', 'Valor (R$)', 'Observacoes'])
+
+    for t in transactions:
+        cat_name = t.category.name if t.category else 'Sem Categoria'
+        cat_type = t.category.get_category_type_display() if t.category else '-'
+        payment = t.get_payment_method_display()
+        # Formata o valor substituindo ponto por vírgula para leitura automática no Excel brasileiro
+        val_formatted = str(t.amount).replace('.', ',')
+        notes = t.notes if t.notes else ''
+
+        writer.writerow([
+            t.transaction_date.strftime('%d/%m/%Y'),
+            t.description,
+            cat_name,
+            cat_type,
+            payment,
+            val_formatted,
+            notes
+        ])
+
+    return response
