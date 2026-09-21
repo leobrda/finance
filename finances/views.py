@@ -2,6 +2,8 @@ import json
 import csv
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
+from django.contrib import messages
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Q
 from datetime import date
@@ -252,3 +254,67 @@ def export_transactions_csv(request):
         ])
 
     return response
+
+
+@login_required
+def manage_categories_view(request):
+    workspace_id = request.GET.get('workspace')
+    workspace = get_object_or_404(Workspace, id=workspace_id,
+                                  user=request.user) if workspace_id else Workspace.objects.filter(
+        user=request.user).first()
+
+    if not workspace:
+        return redirect('dashboard')
+
+    # Criação rápida pela própria página de gestão
+    if request.method == 'POST' and 'create_category' in request.POST:
+        cat_form = CategoryForm(request.POST)
+        if cat_form.is_valid():
+            new_cat = cat_form.save(commit=False)
+            new_cat.workspace = workspace
+            new_cat.save()
+            return redirect(f"{request.path}?workspace={workspace.id}")
+
+    categories = Category.objects.filter(workspace=workspace).order_by('category_type', 'name')
+
+    # Anexa a contagem de transações vinculadas para informar o utilizador antes de apagar
+    for cat in categories:
+        cat.transactions_count = Transaction.objects.filter(category=cat).count()
+
+    cat_form = CategoryForm()
+
+    return render(request, 'finances/manage_categories.html', {
+        'workspace': workspace,
+        'categories': categories,
+        'cat_form': cat_form,
+    })
+
+
+@login_required
+def edit_category_view(request, pk):
+    category = get_object_or_404(Category, pk=pk, workspace__user=request.user)
+    workspace = category.workspace
+
+    if request.method == 'POST':
+        form = CategoryForm(request.POST, instance=category)
+        if form.is_valid():
+            form.save()
+            return redirect(f"{reverse('manage_categories')}?workspace={workspace.id}")
+    else:
+        form = CategoryForm(instance=category)
+
+    return render(request, 'finances/edit_category.html', {
+        'form': form,
+        'category': category,
+        'workspace': workspace
+    })
+
+
+@login_required
+def delete_category_view(request, pk):
+    category = get_object_or_404(Category, pk=pk, workspace__user=request.user)
+    workspace = category.workspace
+
+    if request.method == 'POST':
+        category.delete()
+    return redirect(f"{reverse('manage_categories')}?workspace={workspace.id}")

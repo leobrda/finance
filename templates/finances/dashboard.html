@@ -59,10 +59,10 @@
             </div>
 
             <div class="flex divide-x-2 divide-black border-t-2 md:border-t-0 border-black">
-                <button onclick="document.getElementById('modalCategory').classList.remove('hidden')"
-                        class="px-5 py-4 bg-white hover:bg-[#FFE600] transition text-xs font-black uppercase tracking-widest flex items-center gap-2">
-                    <i data-lucide="tag" class="w-4 h-4"></i> + Categoria
-                </button>
+                <a href="{% url 'manage_categories' %}?workspace={{ current_workspace.id }}"
+                   class="px-4 py-4 bg-white hover:bg-[#FFE600] transition text-xs font-black uppercase tracking-widest flex items-center gap-2" title="Gerenciar e renomear categorias">
+                    <i data-lucide="settings-2" class="w-4 h-4"></i> Categorias
+                </a>
                 <button onclick="document.getElementById('modalTransaction').classList.remove('hidden')"
                         class="px-8 py-4 bg-[#FF4A22] hover:bg-black hover:text-white transition text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2">
                     <i data-lucide="plus" class="w-4 h-4 stroke-[3]"></i> Nova Transação
