@@ -9,6 +9,7 @@ from accounts.models import Workspace
 from accounts.forms import WorkspaceForm
 from .models import Transaction, Category
 from .forms import TransactionForm, CategoryForm
+from decimal import Decimal
 
 
 @login_required
@@ -63,11 +64,11 @@ def dashboard_view(request):
     ws_form = WorkspaceForm()
 
     transactions = []
-    total_income = 0
-    total_expense = 0
-    balance = 0
-    pending_income = 0
-    pending_expense = 0
+    total_income = Decimal('0.00')
+    total_expense = Decimal('0.00')
+    balance = Decimal('0.00')
+    pending_income = Decimal('0.00')
+    pending_expense = Decimal('0.00')
     chart_labels = []
     chart_data = []
 
@@ -81,16 +82,16 @@ def dashboard_view(request):
 
         # Realizado (Concluído/Pago)
         total_income = qs.filter(category__category_type='INCOME', status='PAID').aggregate(Sum('amount'))[
-                           'amount__sum'] or 0
+                           'amount__sum'] or Decimal('0.00')
         total_expense = qs.filter(category__category_type='EXPENSE', status='PAID').aggregate(Sum('amount'))[
-                            'amount__sum'] or 0
+                            'amount__sum'] or Decimal('0.00')
         balance = total_income - total_expense
 
         # Previsão (Pendente)
         pending_income = qs.filter(category__category_type='INCOME', status='PENDING').aggregate(Sum('amount'))[
-                             'amount__sum'] or 0
+                             'amount__sum'] or Decimal('0.00')
         pending_expense = qs.filter(category__category_type='EXPENSE', status='PENDING').aggregate(Sum('amount'))[
-                              'amount__sum'] or 0
+                              'amount__sum'] or Decimal('0.00')
 
         # Gráfico de despesas pagas
         expense_by_cat = qs.filter(

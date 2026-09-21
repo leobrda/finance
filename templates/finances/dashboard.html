@@ -111,7 +111,7 @@
                     <span class="text-xs font-black uppercase tracking-widest text-neutral-500">Receitas Realizadas</span>
                     <span class="border border-black p-1 bg-[#F6F6F2]"><i data-lucide="arrow-up-right" class="w-4 h-4 text-black"></i></span>
                 </div>
-                <p class="text-3xl sm:text-4xl font-black tracking-tight">R$ {{ total_income }}</p>
+                <p class="text-3xl sm:text-4xl font-black tracking-tight">R$ {{ total_income|floatformat:2 }}</p>
                 <div class="mt-4 text-[10px] font-bold uppercase tracking-widest text-neutral-400">
                     Efetivado no caixa • {{ selected_month }}/{{ selected_year }}
                 </div>
@@ -122,7 +122,7 @@
                     <span class="text-xs font-black uppercase tracking-widest text-neutral-500">Despesas Pagas</span>
                     <span class="border border-black p-1 bg-[#F6F6F2]"><i data-lucide="arrow-down-right" class="w-4 h-4 text-[#FF4A22]"></i></span>
                 </div>
-                <p class="text-3xl sm:text-4xl font-black tracking-tight text-[#FF4A22]">R$ {{ total_expense }}</p>
+                <p class="text-3xl sm:text-4xl font-black tracking-tight text-[#FF4A22]">R$ {{ total_expense|floatformat:2 }}</p>
                 <div class="mt-4 text-[10px] font-bold uppercase tracking-widest text-neutral-400">
                     Liquidado no caixa • {{ selected_month }}/{{ selected_year }}
                 </div>
@@ -133,7 +133,7 @@
                     <span class="text-xs font-black uppercase tracking-widest {% if balance >= 0 %}text-black{% else %}text-white{% endif %}">Saldo Consolidado</span>
                     <span class="border border-black p-1 bg-white text-black"><i data-lucide="wallet" class="w-4 h-4"></i></span>
                 </div>
-                <p class="text-3xl sm:text-4xl font-black tracking-tight">R$ {{ balance }}</p>
+                <p class="text-3xl sm:text-4xl font-black tracking-tight">R$ {{ balance|floatformat:2 }}</p>
                 <div class="mt-4 text-[10px] font-bold uppercase tracking-widest opacity-70">
                     Disponível em caixa • {{ selected_month }}/{{ selected_year }}
                 </div>
@@ -149,7 +149,7 @@
                     </span>
                     <div>
                         <span class="text-[10px] font-black uppercase tracking-wider text-emerald-800 block">Previsão: A Receber</span>
-                        <span class="text-lg font-black text-black font-mono">+ R$ {{ pending_income }}</span>
+                        <span class="text-lg font-black text-black font-mono">+ R$ {{ pending_income|floatformat:2 }}</span>
                     </div>
                 </div>
                 <span class="text-[10px] font-bold uppercase border border-black px-2 py-0.5 bg-white text-neutral-600">Pendente</span>
@@ -162,7 +162,7 @@
                     </span>
                     <div>
                         <span class="text-[10px] font-black uppercase tracking-wider text-amber-900 block">Previsão: A Pagar</span>
-                        <span class="text-lg font-black text-[#FF4A22] font-mono">- R$ {{ pending_expense }}</span>
+                        <span class="text-lg font-black text-[#FF4A22] font-mono">- R$ {{ pending_expense|floatformat:2 }}</span>
                     </div>
                 </div>
                 <span class="text-[10px] font-bold uppercase border border-black px-2 py-0.5 bg-white text-neutral-600">Pendente</span>
@@ -263,7 +263,7 @@
                             </td>
                             <td class="p-4 border-r-2 border-black text-xs font-mono">{{ t.transaction_date|date:"d.m.Y" }}</td>
                             <td class="p-4 border-r-2 border-black text-right font-mono font-bold {% if t.category.category_type == 'INCOME' %}text-black{% else %}text-[#FF4A22]{% endif %}">
-                                {% if t.category.category_type == 'INCOME' %}+{% else %}-{% endif %} R$ {{ t.amount }}
+                                {% if t.category.category_type == 'INCOME' %}+{% else %}-{% endif %} R$ {{ t.amount|floatformat:2 }}
                             </td>
                             <td class="p-4 text-center">
                                 <div class="flex items-center justify-center gap-2">
