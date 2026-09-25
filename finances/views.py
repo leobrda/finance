@@ -105,6 +105,8 @@ def dashboard_view(request):
     pending_expense = Decimal('0.00')
     chart_labels = []
     chart_data = []
+    income_chart_labels = []
+    income_chart_data = []
 
     # Variáveis de Metas
     monthly_goal = None
@@ -161,6 +163,7 @@ def dashboard_view(request):
             expense_bar_width = min(expense_percent, 100)
             expense_remaining = expense_limit - total_expense
 
+        # Gráfico de Despesas por Categoria
         expense_by_cat = base_qs.filter(
             category__category_type='EXPENSE', status='PAID'
         ).values('category__name').annotate(total=Sum('amount')).order_by('-total')
@@ -169,6 +172,16 @@ def dashboard_view(request):
             cat_name = item['category__name'] or 'Sem Categoria'
             chart_labels.append(cat_name.upper())
             chart_data.append(float(item['total']))
+
+        # Gráfico de Receitas por Categoria
+        income_by_cat = base_qs.filter(
+            category__category_type='INCOME', status='PAID'
+        ).values('category__name').annotate(total=Sum('amount')).order_by('-total')
+
+        for item in income_by_cat:
+            cat_name = item['category__name'] or 'Sem Categoria'
+            income_chart_labels.append(cat_name.upper())
+            income_chart_data.append(float(item['total']))
 
         # Filtros no extrato
         table_qs = base_qs
@@ -216,6 +229,8 @@ def dashboard_view(request):
         'years_list': years_list,
         'chart_labels_json': json.dumps(chart_labels),
         'chart_data_json': json.dumps(chart_data),
+        'income_chart_labels_json': json.dumps(income_chart_labels),
+        'income_chart_data_json': json.dumps(income_chart_data),
         'search_query': search_query,
         'filter_type': filter_type,
         'filter_category': filter_category,

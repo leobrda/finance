@@ -263,7 +263,7 @@
                                 {% if expense_remaining >= 0 %}
                                     <span class="text-neutral-600">Margem disponível: <span class="font-mono text-emerald-700 font-black">R$ {{ expense_remaining|floatformat:2 }}</span></span>
                                 {% else %}
-                                    <span class="text-[#FF4A22] font-black">Orçamento estourado em <span class="font-mono">R$ {{ total_expense|add:"-0" }}</span>! Reduza custos.</span>
+                                    <span class="text-[#FF4A22] font-black">Orçamento estourado! Reduza custos.</span>
                                 {% endif %}
                             </div>
                         {% else %}
@@ -275,29 +275,60 @@
                 </div>
             </div>
         </div>
-        <!-- Card Gráfico: Divisão de Gastos -->
-        <div class="border-2 border-black bg-white mb-8">
-            <div class="p-4 border-b-2 border-black flex justify-between items-center bg-[#F6F6F2]">
-                <h3 class="text-xs font-black uppercase tracking-widest flex items-center gap-2">
-                    <i data-lucide="pie-chart" class="w-4 h-4"></i> Distribuição de Despesas por Categoria
-                </h3>
-                <span class="text-[10px] font-bold uppercase border border-black px-2 py-0.5 bg-white">
-                    Período: {{ selected_month }}/{{ selected_year }}
-                </span>
-            </div>
 
-            <div class="p-6">
-                <div id="chartContainer" class="flex flex-col md:flex-row items-center justify-around gap-8 {% if not chart_data_json or chart_data_json == '[]' %}hidden{% endif %}">
-                    <div class="w-64 h-64 relative">
-                        <canvas id="expensesChart"></canvas>
+        <!-- Seção de Gráficos: Distribuição de Receitas e Despesas lado a lado -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+
+            <!-- 1. Gráfico de Receitas por Categoria -->
+            <div class="border-2 border-black bg-white flex flex-col justify-between">
+                <div class="p-4 border-b-2 border-black flex justify-between items-center bg-[#F6F6F2]">
+                    <h3 class="text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                        <i data-lucide="trending-up" class="w-4 h-4 text-emerald-600"></i> Fontes de Receita
+                    </h3>
+                    <span class="text-[10px] font-bold uppercase border border-black px-2 py-0.5 bg-white">
+                        {{ selected_month }}/{{ selected_year }}
+                    </span>
+                </div>
+
+                <div class="p-6 flex-1 flex flex-col justify-center">
+                    <div id="incomeChartContainer" class="flex flex-col sm:flex-row items-center justify-around gap-6 {% if not income_chart_data_json or income_chart_data_json == '[]' %}hidden{% endif %}">
+                        <div class="w-52 h-52 relative flex-shrink-0">
+                            <canvas id="incomeChart"></canvas>
+                        </div>
+                        <div id="incomeChartLegendCustom" class="w-full sm:w-1/2 flex flex-col gap-2"></div>
                     </div>
-                    <div id="chartLegendCustom" class="w-full md:w-1/2 flex flex-col gap-2"></div>
-                </div>
 
-                <div id="noChartData" class="{% if chart_data_json and chart_data_json != '[]' %}hidden{% endif %} p-8 text-center text-xs uppercase font-bold text-neutral-400">
-                    Nenhuma despesa registrada neste período para gerar a análise visual.
+                    <div id="noIncomeChartData" class="{% if income_chart_data_json and income_chart_data_json != '[]' %}hidden{% endif %} py-12 text-center text-xs uppercase font-bold text-neutral-400">
+                        Nenhuma receita realizada neste período para gerar a análise visual.
+                    </div>
                 </div>
             </div>
+
+            <!-- 2. Gráfico de Despesas por Categoria -->
+            <div class="border-2 border-black bg-white flex flex-col justify-between">
+                <div class="p-4 border-b-2 border-black flex justify-between items-center bg-[#F6F6F2]">
+                    <h3 class="text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                        <i data-lucide="pie-chart" class="w-4 h-4 text-[#FF4A22]"></i> Destino das Despesas
+                    </h3>
+                    <span class="text-[10px] font-bold uppercase border border-black px-2 py-0.5 bg-white">
+                        {{ selected_month }}/{{ selected_year }}
+                    </span>
+                </div>
+
+                <div class="p-6 flex-1 flex flex-col justify-center">
+                    <div id="chartContainer" class="flex flex-col sm:flex-row items-center justify-around gap-6 {% if not chart_data_json or chart_data_json == '[]' %}hidden{% endif %}">
+                        <div class="w-52 h-52 relative flex-shrink-0">
+                            <canvas id="expensesChart"></canvas>
+                        </div>
+                        <div id="chartLegendCustom" class="w-full sm:w-1/2 flex flex-col gap-2"></div>
+                    </div>
+
+                    <div id="noChartData" class="{% if chart_data_json and chart_data_json != '[]' %}hidden{% endif %} py-12 text-center text-xs uppercase font-bold text-neutral-400">
+                        Nenhuma despesa registrada neste período para gerar a análise visual.
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <!-- Tabela de Lançamentos em Estilo Editorial -->
@@ -460,7 +491,7 @@
         <div class="bg-white border-4 border-black max-w-sm w-full p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
             <div class="flex justify-between items-center pb-4 border-b-2 border-black mb-4">
                 <h3 class="text-xs font-black uppercase tracking-wider">Novo Espaço de Gestão</h3>
-                <button onclick="document.getElementById('modalWorkspace').classList.add('hidden')" class="font-black text-xl hover:text-[#FF4A22]">&times;</button>
+                <button type="button" onclick="document.getElementById('modalWorkspace').classList.add('hidden')" class="font-black text-xl hover:text-[#FF4A22]">&times;</button>
             </div>
             <form method="post" class="space-y-4">
                 {% csrf_token %}
@@ -494,7 +525,7 @@
         <div class="bg-white border-4 border-black max-w-sm w-full p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
             <div class="flex justify-between items-center pb-4 border-b-2 border-black mb-4">
                 <h3 class="text-xs font-black uppercase tracking-wider">Nova Categoria — {{ current_workspace.name }}</h3>
-                <button onclick="document.getElementById('modalCategory').classList.add('hidden')" class="font-black text-xl hover:text-[#FF4A22]">&times;</button>
+                <button type="button" onclick="document.getElementById('modalCategory').classList.add('hidden')" class="font-black text-xl hover:text-[#FF4A22]">&times;</button>
             </div>
             <form method="post" class="space-y-4">
                 {% csrf_token %}
@@ -528,7 +559,7 @@
         <div class="bg-white border-4 border-black max-w-md w-full p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
             <div class="flex justify-between items-center pb-4 border-b-2 border-black mb-4">
                 <h3 class="text-sm font-black uppercase tracking-wider">Novo Lançamento — {{ current_workspace.name }}</h3>
-                <button onclick="document.getElementById('modalTransaction').classList.add('hidden')" class="font-black text-xl hover:text-[#FF4A22]">&times;</button>
+                <button type="button" onclick="document.getElementById('modalTransaction').classList.add('hidden')" class="font-black text-xl hover:text-[#FF4A22]">&times;</button>
             </div>
 
             <form method="post" class="space-y-4">
@@ -591,7 +622,7 @@
         <div class="bg-white border-4 border-black max-w-sm w-full p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
             <div class="flex justify-between items-center pb-4 border-b-2 border-black mb-4">
                 <h3 class="text-xs font-black uppercase tracking-wider">Metas do Mês — {{ selected_month }}/{{ selected_year }}</h3>
-                <button onclick="document.getElementById('modalGoals').classList.add('hidden')" class="font-black text-xl hover:text-[#FF4A22]">&times;</button>
+                <button type="button" onclick="document.getElementById('modalGoals').classList.add('hidden')" class="font-black text-xl hover:text-[#FF4A22]">&times;</button>
             </div>
 
             <form method="post" class="space-y-4">
@@ -601,7 +632,9 @@
                     <label class="block text-[11px] font-black uppercase tracking-wider mb-1">
                         Meta de Faturamento (R$)
                     </label>
-                    <input type="number" step="0.01" name="revenue_goal" value="{{ revenue_goal }}" placeholder="Ex: 8000.00"
+                    <input type="number" step="0.01" name="revenue_goal"
+                           value="{% if revenue_goal > 0 %}{{ revenue_goal|stringformat:'.2f' }}{% endif %}"
+                           placeholder="Ex: 8000.00"
                            class="w-full border-2 border-black p-2.5 text-sm font-mono font-bold outline-none focus:bg-[#FFE600]">
                     <span class="text-[10px] text-neutral-500 font-bold uppercase mt-1 block">Quanto você almeja faturar este mês.</span>
                 </div>
@@ -610,7 +643,9 @@
                     <label class="block text-[11px] font-black uppercase tracking-wider mb-1">
                         Teto Máximo de Gastos (R$)
                     </label>
-                    <input type="number" step="0.01" name="expense_limit" value="{{ expense_limit }}" placeholder="Ex: 3500.00"
+                    <input type="number" step="0.01" name="expense_limit"
+                           value="{% if expense_limit > 0 %}{{ expense_limit|stringformat:'.2f' }}{% endif %}"
+                           placeholder="Ex: 3500.00"
                            class="w-full border-2 border-black p-2.5 text-sm font-mono font-bold outline-none focus:bg-[#FFE600]">
                     <span class="text-[10px] text-neutral-500 font-bold uppercase mt-1 block">Limite seguro de despesas para manter o caixa saudável.</span>
                 </div>
@@ -627,31 +662,29 @@
             </form>
         </div>
     </div>
+
     <script>
         lucide.createIcons();
     </script>
+
+    <!-- Script Chart.js com os dois gráficos Neobrutalistas -->
     <script>
-        const chartLabels = JSON.parse('{{ chart_labels_json|escapejs }}');
-        const chartData = JSON.parse('{{ chart_data_json|escapejs }}');
+        const brutalistColorsExpenses = ['#FFE600', '#FF4A22', '#000000', '#737373', '#00F0FF', '#A3E635'];
+        const brutalistColorsIncome = ['#10B981', '#FFE600', '#00F0FF', '#000000', '#6366F1', '#EC4899'];
 
-        if (chartData.length > 0) {
-            const brutalistColors = [
-                '#FFE600', // Amarelo
-                '#FF4A22', // Laranja-vermelho
-                '#000000', // Preto
-                '#737373', // Cinza
-                '#00F0FF', // Ciano
-                '#A3E635'  // Verde-limão
-            ];
+        // 1. Gráfico de Fontes de Receita
+        const incomeLabels = JSON.parse('{{ income_chart_labels_json|escapejs }}');
+        const incomeData = JSON.parse('{{ income_chart_data_json|escapejs }}');
 
-            const ctx = document.getElementById('expensesChart').getContext('2d');
-            new Chart(ctx, {
+        if (incomeData.length > 0) {
+            const ctxInc = document.getElementById('incomeChart').getContext('2d');
+            new Chart(ctxInc, {
                 type: 'doughnut',
                 data: {
-                    labels: chartLabels,
+                    labels: incomeLabels,
                     datasets: [{
-                        data: chartData,
-                        backgroundColor: brutalistColors.slice(0, chartData.length),
+                        data: incomeData,
+                        backgroundColor: brutalistColorsIncome.slice(0, incomeData.length),
                         borderColor: '#000000',
                         borderWidth: 2,
                         hoverOffset: 6
@@ -661,9 +694,7 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: {
-                            display: false
-                        },
+                        legend: { display: false },
                         tooltip: {
                             backgroundColor: '#000000',
                             titleFont: { family: 'Space Grotesk', weight: 'bold' },
@@ -671,9 +702,7 @@
                             borderColor: '#000000',
                             borderWidth: 2,
                             callbacks: {
-                                label: function(context) {
-                                    return ` R$ ${context.parsed.toFixed(2)}`;
-                                }
+                                label: function(context) { return ` R$ ${context.parsed.toFixed(2)}`; }
                             }
                         }
                     },
@@ -681,27 +710,89 @@
                 }
             });
 
-            const legendContainer = document.getElementById('chartLegendCustom');
-            const totalExpenseAmount = chartData.reduce((a, b) => a + b, 0);
+            const legendInc = document.getElementById('incomeChartLegendCustom');
+            const totalInc = incomeData.reduce((a, b) => a + b, 0);
 
-            chartLabels.forEach((label, idx) => {
-                const val = chartData[idx];
-                const pct = totalExpenseAmount > 0 ? ((val / totalExpenseAmount) * 100).toFixed(1) : 0;
-                const color = brutalistColors[idx % brutalistColors.length];
+            incomeLabels.forEach((label, idx) => {
+                const val = incomeData[idx];
+                const pct = totalInc > 0 ? ((val / totalInc) * 100).toFixed(1) : 0;
+                const color = brutalistColorsIncome[idx % brutalistColorsIncome.length];
 
                 const item = document.createElement('div');
-                item.className = 'flex justify-between items-center border-2 border-black p-2.5 bg-[#F6F6F2] font-mono text-xs font-bold';
+                item.className = 'flex justify-between items-center border-2 border-black p-2 bg-[#F6F6F2] font-mono text-xs font-bold';
                 item.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <span class="w-3.5 h-3.5 border border-black inline-block" style="background-color: ${color}"></span>
-                        <span class="font-sans font-bold uppercase text-[11px]">${label}</span>
+                    <div class="flex items-center gap-2 truncate">
+                        <span class="w-3 h-3 border border-black inline-block flex-shrink-0" style="background-color: ${color}"></span>
+                        <span class="font-sans font-bold uppercase text-[10px] truncate">${label}</span>
                     </div>
-                    <div>
+                    <div class="text-right flex-shrink-0">
                         <span>R$ ${val.toFixed(2)}</span>
                         <span class="text-neutral-500 text-[10px] ml-1">(${pct}%)</span>
                     </div>
                 `;
-                legendContainer.appendChild(item);
+                legendInc.appendChild(item);
+            });
+        }
+
+        // 2. Gráfico de Destino das Despesas
+        const chartLabels = JSON.parse('{{ chart_labels_json|escapejs }}');
+        const chartData = JSON.parse('{{ chart_data_json|escapejs }}');
+
+        if (chartData.length > 0) {
+            const ctxExp = document.getElementById('expensesChart').getContext('2d');
+            new Chart(ctxExp, {
+                type: 'doughnut',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        data: chartData,
+                        backgroundColor: brutalistColorsExpenses.slice(0, chartData.length),
+                        borderColor: '#000000',
+                        borderWidth: 2,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#000000',
+                            titleFont: { family: 'Space Grotesk', weight: 'bold' },
+                            bodyFont: { family: 'Space Grotesk' },
+                            borderColor: '#000000',
+                            borderWidth: 2,
+                            callbacks: {
+                                label: function(context) { return ` R$ ${context.parsed.toFixed(2)}`; }
+                            }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+
+            const legendExp = document.getElementById('chartLegendCustom');
+            const totalExp = chartData.reduce((a, b) => a + b, 0);
+
+            chartLabels.forEach((label, idx) => {
+                const val = chartData[idx];
+                const pct = totalExp > 0 ? ((val / totalExp) * 100).toFixed(1) : 0;
+                const color = brutalistColorsExpenses[idx % brutalistColorsExpenses.length];
+
+                const item = document.createElement('div');
+                item.className = 'flex justify-between items-center border-2 border-black p-2 bg-[#F6F6F2] font-mono text-xs font-bold';
+                item.innerHTML = `
+                    <div class="flex items-center gap-2 truncate">
+                        <span class="w-3 h-3 border border-black inline-block flex-shrink-0" style="background-color: ${color}"></span>
+                        <span class="font-sans font-bold uppercase text-[10px] truncate">${label}</span>
+                    </div>
+                    <div class="text-right flex-shrink-0">
+                        <span>R$ ${val.toFixed(2)}</span>
+                        <span class="text-neutral-500 text-[10px] ml-1">(${pct}%)</span>
+                    </div>
+                `;
+                legendExp.appendChild(item);
             });
         }
     </script>
