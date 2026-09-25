@@ -169,6 +169,112 @@
             </div>
         </div>
 
+        <!-- Card de Metas Mensais: Faturamento e Teto de Gastos -->
+        <div class="border-2 border-black bg-white mb-8">
+            <div class="p-4 border-b-2 border-black flex flex-wrap justify-between items-center gap-2 bg-[#F6F6F2]">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="target" class="w-4 h-4"></i>
+                    <h3 class="text-xs font-black uppercase tracking-widest">
+                        Metas e Limites do Período — {{ selected_month }}/{{ selected_year }}
+                    </h3>
+                </div>
+                <button onclick="document.getElementById('modalGoals').classList.remove('hidden')"
+                        class="px-3 py-1 bg-white hover:bg-[#FFE600] border-2 border-black text-[10px] font-black uppercase tracking-wider transition flex items-center gap-1.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                    <i data-lucide="sliders" class="w-3.5 h-3.5"></i> Definir Metas
+                </button>
+            </div>
+
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- 1. Meta de Faturamento (Receitas) -->
+                <div class="border-2 border-black p-5 bg-[#FAFAFA] flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 bg-black inline-block"></span> Meta de Faturamento
+                            </span>
+                            {% if revenue_percent >= 100 %}
+                                <span class="border border-black px-2 py-0.5 bg-[#FFE600] text-black text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                                    <i data-lucide="trophy" class="w-3 h-3"></i> Conquistada!
+                                </span>
+                            {% else %}
+                                <span class="text-xs font-mono font-bold">{{ revenue_percent }}%</span>
+                            {% endif %}
+                        </div>
+
+                        {% if revenue_goal > 0 %}
+                            <div class="flex justify-between items-baseline mb-3">
+                                <span class="text-2xl font-black font-mono">R$ {{ total_income|floatformat:2 }}</span>
+                                <span class="text-xs font-bold font-mono text-neutral-500">Alvo: R$ {{ revenue_goal|floatformat:2 }}</span>
+                            </div>
+
+                            <!-- Barra Neobrutalista -->
+                            <div class="w-full h-5 border-2 border-black bg-stone-200 relative overflow-hidden">
+                                <div class="h-full border-r-2 border-black {% if revenue_percent >= 100 %}bg-[#FFE600]{% else %}bg-black{% endif %} transition-all duration-500"
+                                     style="width: {{ revenue_bar_width }}%;"></div>
+                            </div>
+
+                            <div class="mt-3 text-[11px] font-bold uppercase tracking-wider">
+                                {% if revenue_remaining > 0 %}
+                                    <span class="text-neutral-600">Faltam <span class="font-mono text-black font-black">R$ {{ revenue_remaining|floatformat:2 }}</span> para bater o alvo.</span>
+                                {% else %}
+                                    <span class="text-black font-black">Superou a meta em <span class="font-mono">+ R$ {{ revenue_remaining|stringformat:"s"|slice:"1:"|default:"0,00" }}</span>! 🔥</span>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <div class="py-6 text-center text-xs uppercase font-bold text-neutral-400">
+                                Nenhuma meta de faturamento definida para este mês.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- 2. Teto de Despesas (Controle Orçamentário) -->
+                <div class="border-2 border-black p-5 bg-[#FAFAFA] flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 bg-[#FF4A22] inline-block"></span> Teto de Gastos
+                            </span>
+                            {% if expense_percent > 100 %}
+                                <span class="border border-black px-2 py-0.5 bg-[#FF4A22] text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                                    <i data-lucide="alert-triangle" class="w-3 h-3"></i> Teto Estourado!
+                                </span>
+                            {% else %}
+                                <span class="text-xs font-mono font-bold">{{ expense_percent }}% consumido</span>
+                            {% endif %}
+                        </div>
+
+                        {% if expense_limit > 0 %}
+                            <div class="flex justify-between items-baseline mb-3">
+                                <span class="text-2xl font-black font-mono {% if expense_percent > 100 %}text-[#FF4A22]{% endif %}">
+                                    R$ {{ total_expense|floatformat:2 }}
+                                </span>
+                                <span class="text-xs font-bold font-mono text-neutral-500">Limite: R$ {{ expense_limit|floatformat:2 }}</span>
+                            </div>
+
+                            <!-- Barra Neobrutalista -->
+                            <div class="w-full h-5 border-2 border-black bg-stone-200 relative overflow-hidden">
+                                <div class="h-full border-r-2 border-black transition-all duration-500
+                                     {% if expense_percent > 100 %}bg-[#FF4A22]{% elif expense_percent >= 80 %}bg-amber-400{% else %}bg-emerald-500{% endif %}"
+                                     style="width: {{ expense_bar_width }}%;"></div>
+                            </div>
+
+                            <div class="mt-3 text-[11px] font-bold uppercase tracking-wider">
+                                {% if expense_remaining >= 0 %}
+                                    <span class="text-neutral-600">Margem disponível: <span class="font-mono text-emerald-700 font-black">R$ {{ expense_remaining|floatformat:2 }}</span></span>
+                                {% else %}
+                                    <span class="text-[#FF4A22] font-black">Orçamento estourado em <span class="font-mono">R$ {{ total_expense|add:"-0" }}</span>! Reduza custos.</span>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <div class="py-6 text-center text-xs uppercase font-bold text-neutral-400">
+                                Nenhum teto de despesa definido para este mês.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
         <!-- Card Gráfico: Divisão de Gastos -->
         <div class="border-2 border-black bg-white mb-8">
             <div class="p-4 border-b-2 border-black flex justify-between items-center bg-[#F6F6F2]">
@@ -480,6 +586,47 @@
         </div>
     </div>
 
+    <!-- Modal Definir Metas do Mês -->
+    <div id="modalGoals" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
+        <div class="bg-white border-4 border-black max-w-sm w-full p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+            <div class="flex justify-between items-center pb-4 border-b-2 border-black mb-4">
+                <h3 class="text-xs font-black uppercase tracking-wider">Metas do Mês — {{ selected_month }}/{{ selected_year }}</h3>
+                <button onclick="document.getElementById('modalGoals').classList.add('hidden')" class="font-black text-xl hover:text-[#FF4A22]">&times;</button>
+            </div>
+
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="save_goals" value="1">
+                <div>
+                    <label class="block text-[11px] font-black uppercase tracking-wider mb-1">
+                        Meta de Faturamento (R$)
+                    </label>
+                    <input type="number" step="0.01" name="revenue_goal" value="{{ revenue_goal }}" placeholder="Ex: 8000.00"
+                           class="w-full border-2 border-black p-2.5 text-sm font-mono font-bold outline-none focus:bg-[#FFE600]">
+                    <span class="text-[10px] text-neutral-500 font-bold uppercase mt-1 block">Quanto você almeja faturar este mês.</span>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-black uppercase tracking-wider mb-1">
+                        Teto Máximo de Gastos (R$)
+                    </label>
+                    <input type="number" step="0.01" name="expense_limit" value="{{ expense_limit }}" placeholder="Ex: 3500.00"
+                           class="w-full border-2 border-black p-2.5 text-sm font-mono font-bold outline-none focus:bg-[#FFE600]">
+                    <span class="text-[10px] text-neutral-500 font-bold uppercase mt-1 block">Limite seguro de despesas para manter o caixa saudável.</span>
+                </div>
+
+                <div class="flex gap-3 pt-4 border-t-2 border-black">
+                    <button type="button" onclick="document.getElementById('modalGoals').classList.add('hidden')"
+                            class="w-1/2 py-3 border-2 border-black text-xs font-black uppercase hover:bg-neutral-100">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="w-1/2 py-3 border-2 border-black bg-[#FFE600] hover:bg-black hover:text-white transition text-xs font-black uppercase">
+                        Salvar Metas
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
     <script>
         lucide.createIcons();
     </script>

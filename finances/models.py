@@ -69,3 +69,19 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f"{self.description} - R$ {self.amount} ({self.workspace.name})"
+
+
+class MonthlyGoal(models.Model):
+    workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE, related_name='goals')
+    year = models.PositiveIntegerField()
+    month = models.PositiveIntegerField()
+    revenue_goal = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, blank=True)
+    expense_limit = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('workspace', 'year', 'month')
+
+    def __str__(self):
+        return f"Metas {self.month}/{self.year} - {self.workspace.name}"

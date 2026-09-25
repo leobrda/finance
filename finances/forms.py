@@ -1,5 +1,6 @@
 from django import forms
-from .models import Transaction, Category
+from .models import Transaction, Category, MonthlyGoal
+
 
 class TransactionForm(forms.ModelForm):
     transaction_date = forms.DateField(
@@ -56,5 +57,23 @@ class CategoryForm(forms.ModelForm):
             }),
             'category_type': forms.Select(attrs={
                 'class': 'w-full border-2 border-black p-2.5 text-sm outline-none bg-white font-bold'
+            }),
+        }
+
+
+class MonthlyGoalForm(forms.ModelForm):
+    class Meta:
+        model = MonthlyGoal
+        fields = ['revenue_goal', 'expense_limit']
+        widgets = {
+            'revenue_goal': forms.NumberInput(attrs={
+                'class': 'w-full border-2 border-black p-2.5 text-sm outline-none focus:bg-[#FFE600] font-mono font-bold',
+                'step': '0.01',
+                'placeholder': 'Ex: 5000.00'
+            }),
+            'expense_limit': forms.NumberInput(attrs={
+                'class': 'w-full border-2 border-black p-2.5 text-sm outline-none focus:bg-[#FFE600] font-mono font-bold',
+                'step': '0.01',
+                'placeholder': 'Ex: 2500.00'
             }),
         }
