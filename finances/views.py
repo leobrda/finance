@@ -1,5 +1,6 @@
 import json
 import csv
+import calendar
 from decimal import Decimal
 from datetime import date
 from django.shortcuts import render, redirect, get_object_or_404
@@ -7,12 +8,11 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.db.models import Sum, Q
 from django.urls import reverse
-from django.contrib import messages
 
 from accounts.models import Workspace
 from accounts.forms import WorkspaceForm
-from .models import Transaction, Category, MonthlyGoal
-from .forms import TransactionForm, CategoryForm, MonthlyGoalForm
+from .models import Transaction, Category, MonthlyGoal, RecurringExpense
+from .forms import TransactionForm, CategoryForm, MonthlyGoalForm, RecurringExpenseForm
 
 
 @login_required
@@ -35,9 +35,9 @@ def dashboard_view(request):
         selected_month = today.month
 
     search_query = request.GET.get('q', '').strip()
-    filter_type = request.GET.get('type', '').strip()  # 'INCOME' ou 'EXPENSE'
-    filter_category = request.GET.get('cat', '').strip()  # ID da categoria
-    filter_payment = request.GET.get('payment', '').strip()  # 'PIX', 'CREDIT_CARD', etc.
+    filter_type = request.GET.get('type', '').strip()
+    filter_category = request.GET.get('cat', '').strip()
+    filter_payment = request.GET.get('payment', '').strip()
 
     # 1. POST: Workspace
     if request.method == 'POST' and 'create_workspace' in request.POST:
@@ -92,12 +92,51 @@ def dashboard_view(request):
         )
         return redirect(f"{request.path}?workspace={current_workspace.id}&year={selected_year}&month={selected_month}")
 
+    # Auto-provisionamento de assinaturas recorrentes com verificação temporal e baixa automática
+    if current_workspace:
+        active_recurrings = RecurringExpense.objects.filter(workspace=current_workspace, is_active=True)
+        for rec in active_recurrings:
+            _, max_days = calendar.monthrange(selected_year, selected_month)
+            valid_day = min(rec.due_day, max_days)
+            t_date = date(selected_year, selected_month, valid_day)
+
+            # Regra: Só vira PAID automaticamente se auto_pay estiver ativo e a data já tiver passado
+            should_auto_pay = rec.auto_pay and (t_date <= today)
+            initial_status = 'PAID' if should_auto_pay else 'PENDING'
+
+            existing_trans = Transaction.objects.filter(
+                workspace=current_workspace,
+                recurring_expense=rec,
+                transaction_date__year=selected_year,
+                transaction_date__month=selected_month
+            ).first()
+
+            if not existing_trans:
+                Transaction.objects.create(
+                    workspace=current_workspace,
+                    description=f"{rec.description} 🔁",
+                    amount=rec.amount,
+                    category=rec.category,
+                    payment_method=rec.payment_method,
+                    transaction_date=t_date,
+                    status=initial_status,
+                    notes=rec.notes or 'Despesa recorrente mensal provisionada automaticamente.',
+                    recurring_expense=rec
+                )
+            else:
+                # Se já existia e deveria estar quitado automaticamente por data, atualiza de imediato
+                if should_auto_pay and existing_trans.status == 'PENDING':
+                    existing_trans.status = 'PAID'
+                    existing_trans.save(update_fields=['status'])
+
     trans_form = TransactionForm(workspace=current_workspace, initial={'transaction_date': today, 'status': 'PAID'}) if current_workspace else None
     cat_form = CategoryForm()
     ws_form = WorkspaceForm()
+    recurring_form = RecurringExpenseForm(workspace=current_workspace) if current_workspace else None
 
     transactions = []
     workspace_categories = []
+    recurring_expenses = []
     total_income = Decimal('0.00')
     total_expense = Decimal('0.00')
     balance = Decimal('0.00')
@@ -108,12 +147,10 @@ def dashboard_view(request):
     income_chart_labels = []
     income_chart_data = []
 
-    # Histórico Semestral
     history_labels = []
     history_income_data = []
     history_expense_data = []
 
-    # Metas
     monthly_goal = None
     goal_form = None
     revenue_goal = Decimal('0.00')
@@ -132,6 +169,7 @@ def dashboard_view(request):
 
     if current_workspace:
         workspace_categories = Category.objects.filter(workspace=current_workspace).order_by('name')
+        recurring_expenses = RecurringExpense.objects.filter(workspace=current_workspace).order_by('due_day', 'description')
 
         monthly_goal = MonthlyGoal.objects.filter(
             workspace=current_workspace,
@@ -145,7 +183,6 @@ def dashboard_view(request):
             revenue_goal = monthly_goal.revenue_goal or Decimal('0.00')
             expense_limit = monthly_goal.expense_limit or Decimal('0.00')
 
-        # Período Ativo Selecionado
         base_qs = Transaction.objects.filter(
             workspace=current_workspace,
             transaction_date__year=selected_year,
@@ -159,7 +196,6 @@ def dashboard_view(request):
         pending_income = base_qs.filter(category__category_type='INCOME', status='PENDING').aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
         pending_expense = base_qs.filter(category__category_type='EXPENSE', status='PENDING').aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
 
-        # Progresso Metas
         if revenue_goal > Decimal('0.00'):
             calc_rev = float((total_income / revenue_goal) * Decimal('100'))
             revenue_percent = round(calc_rev, 1)
@@ -172,7 +208,6 @@ def dashboard_view(request):
             expense_bar_width = min(expense_percent, 100)
             expense_remaining = expense_limit - total_expense
 
-        # Distribuição de Despesas
         expense_by_cat = base_qs.filter(
             category__category_type='EXPENSE', status='PAID'
         ).values('category__name').annotate(total=Sum('amount')).order_by('-total')
@@ -182,7 +217,6 @@ def dashboard_view(request):
             chart_labels.append(cat_name.upper())
             chart_data.append(float(item['total']))
 
-        # Distribuição de Receitas
         income_by_cat = base_qs.filter(
             category__category_type='INCOME', status='PAID'
         ).values('category__name').annotate(total=Sum('amount')).order_by('-total')
@@ -192,10 +226,7 @@ def dashboard_view(request):
             income_chart_labels.append(cat_name.upper())
             income_chart_data.append(float(item['total']))
 
-        # Cálculo Retroativo dos Últimos 6 Meses
-        # Ordem cronológica: do 5º mês atrás até o mês selecionado
         for offset in range(5, -1, -1):
-            # Subtrai offset meses do período selecionado
             calc_m = selected_month - offset
             calc_y = selected_year
             while calc_m <= 0:
@@ -217,7 +248,6 @@ def dashboard_view(request):
             history_income_data.append(float(m_inc))
             history_expense_data.append(float(m_exp))
 
-        # Filtros do Extrato
         table_qs = base_qs
 
         if search_query:
@@ -257,6 +287,8 @@ def dashboard_view(request):
         'form': trans_form,
         'category_form': cat_form,
         'workspace_form': ws_form,
+        'recurring_form': recurring_form,
+        'recurring_expenses': recurring_expenses,
         'selected_year': selected_year,
         'selected_month': selected_month,
         'months_list': months_list,
@@ -265,7 +297,6 @@ def dashboard_view(request):
         'chart_data_json': json.dumps(chart_data),
         'income_chart_labels_json': json.dumps(income_chart_labels),
         'income_chart_data_json': json.dumps(income_chart_data),
-        # Dados do Histórico Semestral
         'history_labels_json': json.dumps(history_labels),
         'history_income_data_json': json.dumps(history_income_data),
         'history_expense_data_json': json.dumps(history_expense_data),
@@ -285,6 +316,29 @@ def dashboard_view(request):
         'expense_remaining': expense_remaining,
     }
     return render(request, 'finances/dashboard.html', context)
+
+
+@login_required
+def create_recurring_expense_view(request):
+    workspace_id = request.GET.get('workspace')
+    workspace = get_object_or_404(Workspace, id=workspace_id, user=request.user)
+
+    if request.method == 'POST':
+        form = RecurringExpenseForm(request.POST, workspace=workspace)
+        if form.is_valid():
+            rec = form.save(commit=False)
+            rec.workspace = workspace
+            rec.save()
+    return redirect(f"{reverse('dashboard')}?workspace={workspace.id}")
+
+
+@login_required
+def delete_recurring_expense_view(request, pk):
+    rec = get_object_or_404(RecurringExpense, pk=pk, workspace__user=request.user)
+    ws_id = rec.workspace.id
+    if request.method == 'POST':
+        rec.delete()
+    return redirect(f"{reverse('dashboard')}?workspace={ws_id}")
 
 
 @login_required
@@ -308,7 +362,7 @@ def edit_transaction_view(request, pk):
         form = TransactionForm(request.POST, instance=transaction, workspace=workspace)
         if form.is_valid():
             form.save()
-            return redirect(f"/dashboard/?workspace={workspace.id}&year={transaction.transaction_date.year}&month={transaction.transaction_date.month}")
+            return redirect(f"{reverse('dashboard')}?workspace={workspace.id}&year={transaction.transaction_date.year}&month={transaction.transaction_date.month}")
     else:
         form = TransactionForm(instance=transaction, workspace=workspace)
 
@@ -323,7 +377,7 @@ def delete_transaction_view(request, pk):
 
     if request.method == 'POST':
         transaction.delete()
-    return redirect(f"/dashboard/?workspace={workspace.id}&year={t_date.year}&month={t_date.month}")
+    return redirect(f"{reverse('dashboard')}?workspace={workspace.id}&year={t_date.year}&month={t_date.month}")
 
 
 @login_required

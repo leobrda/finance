@@ -11,4 +11,7 @@ urlpatterns = [
     path('categorias/', views.manage_categories_view, name='manage_categories'),
     path('categorias/<int:pk>/editar/', views.edit_category_view, name='edit_category'),
     path('categorias/<int:pk>/excluir/', views.delete_category_view, name='delete_category'),
+    # Rotas de Despesas Recorrentes & Assinaturas
+    path('recorrentes/criar/', views.create_recurring_expense_view, name='create_recurring_expense'),
+    path('recorrentes/<int:pk>/excluir/', views.delete_recurring_expense_view, name='delete_recurring_expense'),
 ]

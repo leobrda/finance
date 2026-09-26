@@ -54,6 +54,15 @@ class Transaction(models.Model):
         related_name='transactions',
         verbose_name='Categoria'
     )
+
+    recurring_expense = models.ForeignKey(
+        'RecurringExpense',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='generated_transactions'
+    )
+
     description = models.CharField('Descrição', max_length=255)
     amount = models.DecimalField('Valor (R$)', max_digits=12, decimal_places=2)
     transaction_date = models.DateField('Data da Transação')
@@ -85,3 +94,25 @@ class MonthlyGoal(models.Model):
 
     def __str__(self):
         return f"Metas {self.month}/{self.year} - {self.workspace.name}"
+
+
+class RecurringExpense(models.Model):
+    workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE, related_name='recurring_expenses')
+    description = models.CharField('Descrição', max_length=255)
+    amount = models.DecimalField('Valor (R$)', max_digits=10, decimal_places=2)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Categoria')
+    payment_method = models.CharField('Forma de Pagamento', max_length=20, choices=Transaction.PAYMENT_METHOD_CHOICES, default='CREDIT_CARD')
+    due_day = models.PositiveSmallIntegerField('Dia de Cobrança', help_text="Dia de cobrança no mês (1-31)")
+    notes = models.TextField('Observações', blank=True, null=True)
+    auto_pay = models.BooleanField('Baixa Automática (Débito em Conta / Cartão)', default=True,
+                                   help_text="Se marcado, confirma como Pago automaticamente após o dia de cobrança.")
+    is_active = models.BooleanField('Ativo', default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Despesa Recorrente'
+        verbose_name_plural = 'Despesas Recorrentes'
+        ordering = ['due_day', 'description']
+
+    def __str__(self):
+        return f"{self.description} (Dia {self.due_day}) - R$ {self.amount}"

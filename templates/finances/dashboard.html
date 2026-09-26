@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>FIN. FINANCE — Controle</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Ícones Lucide -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -59,6 +58,10 @@
             </div>
 
             <div class="flex divide-x-2 divide-black border-t-2 md:border-t-0 border-black">
+                <button onclick="document.getElementById('modalRecurrings').classList.remove('hidden')"
+                        class="px-4 py-4 bg-white hover:bg-[#FFE600] transition text-xs font-black uppercase tracking-widest flex items-center gap-2" title="Gerenciar Contas Fixas e Assinaturas">
+                    <i data-lucide="repeat" class="w-4 h-4"></i> Assinaturas & Fixas
+                </button>
                 <a href="{% url 'manage_categories' %}?workspace={{ current_workspace.id }}"
                    class="px-4 py-4 bg-white hover:bg-[#FFE600] transition text-xs font-black uppercase tracking-widest flex items-center gap-2" title="Gerenciar e renomear categorias">
                     <i data-lucide="settings-2" class="w-4 h-4"></i> Categorias
@@ -104,7 +107,7 @@
             </form>
         </div>
 
-        <!-- Cards de Métricas Realizadas (Efetivado em Caixa) -->
+        <!-- Cards de Métricas Realizadas -->
         <div class="grid grid-cols-1 md:grid-cols-3 border-2 border-black bg-white divide-y-2 md:divide-y-0 md:divide-x-2 divide-black mb-4">
             <div class="p-6">
                 <div class="flex justify-between items-start mb-4">
@@ -169,7 +172,7 @@
             </div>
         </div>
 
-        <!-- Card de Metas Mensais: Faturamento e Teto de Gastos -->
+        <!-- Card de Metas Mensais -->
         <div class="border-2 border-black bg-white mb-8">
             <div class="p-4 border-b-2 border-black flex flex-wrap justify-between items-center gap-2 bg-[#F6F6F2]">
                 <div class="flex items-center gap-2">
@@ -185,7 +188,7 @@
             </div>
 
             <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- 1. Meta de Faturamento (Receitas) -->
+                <!-- Meta de Faturamento -->
                 <div class="border-2 border-black p-5 bg-[#FAFAFA] flex flex-col justify-between">
                     <div>
                         <div class="flex justify-between items-start mb-2">
@@ -207,7 +210,6 @@
                                 <span class="text-xs font-bold font-mono text-neutral-500">Alvo: R$ {{ revenue_goal|floatformat:2 }}</span>
                             </div>
 
-                            <!-- Barra Neobrutalista -->
                             <div class="w-full h-5 border-2 border-black bg-stone-200 relative overflow-hidden">
                                 <div class="h-full border-r-2 border-black {% if revenue_percent >= 100 %}bg-[#FFE600]{% else %}bg-black{% endif %} transition-all duration-500"
                                      style="width: {{ revenue_bar_width }}%;"></div>
@@ -228,7 +230,7 @@
                     </div>
                 </div>
 
-                <!-- 2. Teto de Despesas (Controle Orçamentário) -->
+                <!-- Teto de Despesas -->
                 <div class="border-2 border-black p-5 bg-[#FAFAFA] flex flex-col justify-between">
                     <div>
                         <div class="flex justify-between items-start mb-2">
@@ -252,7 +254,6 @@
                                 <span class="text-xs font-bold font-mono text-neutral-500">Limite: R$ {{ expense_limit|floatformat:2 }}</span>
                             </div>
 
-                            <!-- Barra Neobrutalista -->
                             <div class="w-full h-5 border-2 border-black bg-stone-200 relative overflow-hidden">
                                 <div class="h-full border-r-2 border-black transition-all duration-500
                                      {% if expense_percent > 100 %}bg-[#FF4A22]{% elif expense_percent >= 80 %}bg-amber-400{% else %}bg-emerald-500{% endif %}"
@@ -276,10 +277,9 @@
             </div>
         </div>
 
-        <!-- Seção de Gráficos: Distribuição de Receitas e Despesas lado a lado -->
+        <!-- Seção de Gráficos: Distribuição de Receitas e Despesas -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-
-            <!-- 1. Gráfico de Receitas por Categoria -->
+            <!-- Fontes de Receita -->
             <div class="border-2 border-black bg-white flex flex-col justify-between">
                 <div class="p-4 border-b-2 border-black flex justify-between items-center bg-[#F6F6F2]">
                     <h3 class="text-xs font-black uppercase tracking-widest flex items-center gap-2">
@@ -304,7 +304,7 @@
                 </div>
             </div>
 
-            <!-- 2. Gráfico de Despesas por Categoria -->
+            <!-- Destino das Despesas -->
             <div class="border-2 border-black bg-white flex flex-col justify-between">
                 <div class="p-4 border-b-2 border-black flex justify-between items-center bg-[#F6F6F2]">
                     <h3 class="text-xs font-black uppercase tracking-widest flex items-center gap-2">
@@ -328,10 +328,9 @@
                     </div>
                 </div>
             </div>
-
         </div>
 
-        <!-- Card de Histórico Semestral: Comparativo de Receitas vs Despesas (Barras) -->
+        <!-- Card de Histórico Semestral (Barras) -->
         <div class="border-2 border-black bg-white mb-8">
             <div class="p-4 border-b-2 border-black flex flex-wrap justify-between items-center gap-2 bg-[#F6F6F2]">
                 <div class="flex items-center gap-2">
@@ -357,7 +356,7 @@
             </div>
         </div>
 
-        <!-- Tabela de Lançamentos em Estilo Editorial -->
+        <!-- Tabela de Lançamentos -->
         <div class="border-2 border-black bg-white">
             <div class="p-4 border-b-2 border-black flex flex-wrap justify-between items-center gap-2 bg-[#F6F6F2]">
                 <h3 class="text-xs font-black uppercase tracking-widest">
@@ -374,13 +373,12 @@
                 </div>
             </div>
 
-            <!-- Barra de Busca Rápida e Filtros Neobrutalista -->
+            <!-- Busca e Filtros -->
             <form method="get" class="p-3 border-b-2 border-black bg-white flex flex-wrap items-center gap-2">
                 <input type="hidden" name="workspace" value="{{ current_workspace.id }}">
                 <input type="hidden" name="year" value="{{ selected_year }}">
                 <input type="hidden" name="month" value="{{ selected_month }}">
 
-                <!-- Campo de Busca -->
                 <div class="flex-1 min-w-[200px] flex items-center border-2 border-black bg-[#F6F6F2] px-2.5 py-1.5">
                     <i data-lucide="search" class="w-4 h-4 text-neutral-500 mr-2"></i>
                     <input type="text" name="q" value="{{ search_query }}" placeholder="Buscar por descrição ou observações..."
@@ -392,14 +390,12 @@
                     {% endif %}
                 </div>
 
-                <!-- Filtro de Tipo -->
                 <select name="type" class="border-2 border-black bg-[#F6F6F2] text-xs font-bold uppercase px-2.5 py-2 outline-none cursor-pointer">
                     <option value="">Tipo (Todos)</option>
                     <option value="INCOME" {% if filter_type == 'INCOME' %}selected{% endif %}>Receitas (+)</option>
                     <option value="EXPENSE" {% if filter_type == 'EXPENSE' %}selected{% endif %}>Despesas (-)</option>
                 </select>
 
-                <!-- Filtro de Categoria -->
                 <select name="cat" class="border-2 border-black bg-[#F6F6F2] text-xs font-bold uppercase px-2.5 py-2 outline-none cursor-pointer">
                     <option value="">Categoria (Todas)</option>
                     {% for c in workspace_categories %}
@@ -409,7 +405,6 @@
                     {% endfor %}
                 </select>
 
-                <!-- Filtro de Pagamento -->
                 <select name="payment" class="border-2 border-black bg-[#F6F6F2] text-xs font-bold uppercase px-2.5 py-2 outline-none cursor-pointer">
                     <option value="">Método (Todos)</option>
                     <option value="PIX" {% if filter_payment == 'PIX' %}selected{% endif %}>Pix</option>
@@ -464,7 +459,12 @@
                                     {% endif %}
                                 </form>
                             </td>
-                            <td class="p-4 border-r-2 border-black font-bold uppercase">{{ t.description }}</td>
+                            <td class="p-4 border-r-2 border-black font-bold uppercase">
+                                {{ t.description }}
+                                {% if t.recurring_expense %}
+                                    <span class="ml-1 text-[9px] px-1 py-0.5 bg-black text-white font-mono uppercase">Assinatura</span>
+                                {% endif %}
+                            </td>
                             <td class="p-4 border-r-2 border-black text-xs font-semibold uppercase text-neutral-600">
                                 {{ t.category.name|default:"Sem Categoria" }}
                             </td>
@@ -511,6 +511,118 @@
         </div>
     </main>
 
+    <!-- Modal Assinaturas e Contas Fixas -->
+    <div id="modalRecurrings" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
+        <div class="bg-white border-4 border-black max-w-2xl w-full p-6 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center pb-4 border-b-2 border-black mb-6">
+                <div>
+                    <h3 class="text-sm font-black uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="repeat" class="w-4 h-4"></i> Contas Fixas & Assinaturas Mensais
+                    </h3>
+                    <p class="text-[11px] text-neutral-500 font-bold uppercase mt-0.5">
+                        Elas são lançadas automaticamente a cada mês de acordo com suas regras.
+                    </p>
+                </div>
+                <button type="button" onclick="document.getElementById('modalRecurrings').classList.add('hidden')" class="font-black text-2xl hover:text-[#FF4A22]">&times;</button>
+            </div>
+
+            <!-- Lista de Assinaturas Ativas -->
+            <div class="mb-6">
+                <h4 class="text-xs font-black uppercase tracking-wider mb-2">Assinaturas Ativas ({{ recurring_expenses|length }})</h4>
+                <div class="space-y-2 max-h-48 overflow-y-auto border-2 border-black p-2 bg-[#F6F6F2]">
+                    {% for rec in recurring_expenses %}
+                        <div class="flex justify-between items-center bg-white border border-black p-2 text-xs font-bold">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="bg-black text-white px-2 py-0.5 font-mono text-[10px]">Dia {{ rec.due_day }}</span>
+                                <span class="uppercase">{{ rec.description }}</span>
+                                <span class="text-neutral-500 text-[10px]">({{ rec.category.name|default:"Sem Categoria" }})</span>
+                                {% if rec.auto_pay %}
+                                    <span class="border border-black bg-emerald-100 text-emerald-900 px-1.5 py-0.2 text-[9px] font-black uppercase">Auto</span>
+                                {% else %}
+                                    <span class="border border-black bg-stone-200 text-neutral-700 px-1.5 py-0.2 text-[9px] font-black uppercase">Manual</span>
+                                {% endif %}
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="font-mono text-[#FF4A22]">R$ {{ rec.amount|floatformat:2 }}</span>
+                                <form method="post" action="{% url 'delete_recurring_expense' rec.pk %}" onsubmit="return confirm('Remover assinatura recorrente? Lançamentos passados já criados permanecerão.');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="text-neutral-400 hover:text-[#FF4A22]" title="Excluir assinatura">
+                                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <p class="text-[11px] uppercase font-bold text-neutral-400 text-center py-4">Nenhuma conta fixa ou assinatura cadastrada ainda.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Formulário Nova Assinatura -->
+            <form method="post" action="{% url 'create_recurring_expense' %}?workspace={{ current_workspace.id }}" class="space-y-4 border-t-2 border-black pt-4">
+                {% csrf_token %}
+                <h4 class="text-xs font-black uppercase tracking-wider">+ Adicionar Nova Assinatura</h4>
+
+                <div>
+                    <label class="block text-[11px] font-black uppercase tracking-wider mb-1">Nome / Descrição</label>
+                    {{ recurring_form.description }}
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[11px] font-black uppercase tracking-wider mb-1">Valor Mensal (R$)</label>
+                        {{ recurring_form.amount }}
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-black uppercase tracking-wider mb-1">Dia de Cobrança / Vencimento</label>
+                        {{ recurring_form.due_day }}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[11px] font-black uppercase tracking-wider mb-1">Categoria (Despesa)</label>
+                        {{ recurring_form.category }}
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-black uppercase tracking-wider mb-1">Método de Pagamento</label>
+                        {{ recurring_form.payment_method }}
+                    </div>
+                </div>
+
+                <!-- Checkbox Baixa Automática Neobrutalista -->
+                <div class="border-2 border-black p-3 bg-[#F6F6F2] flex items-center justify-between gap-3">
+                    <div>
+                        <label for="{{ recurring_form.auto_pay.id_for_label }}" class="text-xs font-black uppercase tracking-wider block cursor-pointer">
+                            Baixa Automática no Vencimento
+                        </label>
+                        <span class="text-[10px] text-neutral-500 font-bold uppercase block mt-0.5">
+                            Marcar como 'Pago' automaticamente após o vencimento (ideal para assinaturas em cartão/débito em conta).
+                        </span>
+                    </div>
+                    <div>
+                        {{ recurring_form.auto_pay }}
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-black uppercase tracking-wider mb-1">Observações (opcional)</label>
+                    {{ recurring_form.notes }}
+                </div>
+
+                <div class="flex gap-3 pt-4 border-t-2 border-black">
+                    <button type="button" onclick="document.getElementById('modalRecurrings').classList.add('hidden')"
+                            class="w-1/2 py-3 border-2 border-black text-xs font-black uppercase hover:bg-neutral-100">
+                        Fechar
+                    </button>
+                    <button type="submit" class="w-1/2 py-3 border-2 border-black bg-[#FFE600] hover:bg-black hover:text-white transition text-xs font-black uppercase">
+                        Cadastrar Assinatura
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Modal Novo Workspace -->
     <div id="modalWorkspace" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
         <div class="bg-white border-4 border-black max-w-sm w-full p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
@@ -539,40 +651,6 @@
                     </button>
                     <button type="submit" class="w-1/2 py-3 border-2 border-black bg-[#FFE600] hover:bg-black hover:text-white transition text-xs font-black uppercase">
                         Criar Espaço
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal Nova Categoria -->
-    <div id="modalCategory" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
-        <div class="bg-white border-4 border-black max-w-sm w-full p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-            <div class="flex justify-between items-center pb-4 border-b-2 border-black mb-4">
-                <h3 class="text-xs font-black uppercase tracking-wider">Nova Categoria — {{ current_workspace.name }}</h3>
-                <button type="button" onclick="document.getElementById('modalCategory').classList.add('hidden')" class="font-black text-xl hover:text-[#FF4A22]">&times;</button>
-            </div>
-            <form method="post" class="space-y-4">
-                {% csrf_token %}
-                <input type="hidden" name="create_category" value="1">
-                <div>
-                    <label class="block text-[11px] font-black uppercase tracking-wider mb-1">Nome da Categoria</label>
-                    <input type="text" name="name" required placeholder="Ex: Capinhas, Películas, Manutenção..." class="w-full border-2 border-black p-2.5 text-sm outline-none focus:bg-[#FFE600] font-bold uppercase">
-                </div>
-                <div>
-                    <label class="block text-[11px] font-black uppercase tracking-wider mb-1">Tipo de Lançamento</label>
-                    <select name="category_type" class="w-full border-2 border-black p-2.5 text-sm outline-none bg-white font-bold">
-                        <option value="INCOME">Receita (+)</option>
-                        <option value="EXPENSE">Despesa (-)</option>
-                    </select>
-                </div>
-                <div class="flex gap-3 pt-4">
-                    <button type="button" onclick="document.getElementById('modalCategory').classList.add('hidden')"
-                            class="w-1/2 py-3 border-2 border-black text-xs font-black uppercase hover:bg-neutral-100">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="w-1/2 py-3 border-2 border-black bg-[#FFE600] hover:bg-black hover:text-white transition text-xs font-black uppercase">
-                        Criar Categoria
                     </button>
                 </div>
             </form>
@@ -692,7 +770,7 @@
         lucide.createIcons();
     </script>
 
-    <!-- Scripts Chart.js: Rosca (Receitas e Despesas) e Barras (Histórico Semestral) -->
+    <!-- Scripts Chart.js: Rosca e Barras -->
     <script>
         const brutalistColorsExpenses = ['#FFE600', '#FF4A22', '#000000', '#737373', '#00F0FF', '#A3E635'];
         const brutalistColorsIncome = ['#10B981', '#FFE600', '#00F0FF', '#000000', '#6366F1', '#EC4899'];
@@ -821,7 +899,7 @@
             });
         }
 
-        // 3. Gráfico de Histórico Semestral (Barras Neobrutalistas)
+        // 3. Gráfico de Histórico Semestral
         const historyLabels = JSON.parse('{{ history_labels_json|escapejs }}');
         const historyIncome = JSON.parse('{{ history_income_data_json|escapejs }}');
         const historyExpense = JSON.parse('{{ history_expense_data_json|escapejs }}');
@@ -859,49 +937,25 @@
                 maintainAspectRatio: false,
                 scales: {
                     x: {
-                        grid: {
-                            color: '#E5E5E5',
-                            lineWidth: 1
-                        },
+                        grid: { color: '#E5E5E5', lineWidth: 1 },
                         ticks: {
-                            font: {
-                                family: 'Space Grotesk',
-                                weight: 'bold',
-                                size: 11
-                            },
+                            font: { family: 'Space Grotesk', weight: 'bold', size: 11 },
                             color: '#000000'
                         },
-                        border: {
-                            color: '#000000',
-                            width: 2
-                        }
+                        border: { color: '#000000', width: 2 }
                     },
                     y: {
-                        grid: {
-                            color: '#E5E5E5',
-                            lineWidth: 1
-                        },
+                        grid: { color: '#E5E5E5', lineWidth: 1 },
                         ticks: {
-                            font: {
-                                family: 'Space Grotesk',
-                                weight: 'bold',
-                                size: 11
-                            },
+                            font: { family: 'Space Grotesk', weight: 'bold', size: 11 },
                             color: '#000000',
-                            callback: function(value) {
-                                return 'R$ ' + value;
-                            }
+                            callback: function(value) { return 'R$ ' + value; }
                         },
-                        border: {
-                            color: '#000000',
-                            width: 2
-                        }
+                        border: { color: '#000000', width: 2 }
                     }
                 },
                 plugins: {
-                    legend: {
-                        display: false
-                    },
+                    legend: { display: false },
                     tooltip: {
                         backgroundColor: '#000000',
                         titleFont: { family: 'Space Grotesk', weight: 'bold' },
@@ -909,9 +963,7 @@
                         borderColor: '#000000',
                         borderWidth: 2,
                         callbacks: {
-                            label: function(context) {
-                                return ` ${context.dataset.label}: R$ ${context.parsed.y.toFixed(2)}`;
-                            }
+                            label: function(context) { return ` ${context.dataset.label}: R$ ${context.parsed.y.toFixed(2)}`; }
                         }
                     }
                 }
