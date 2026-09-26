@@ -66,7 +66,7 @@ def dashboard_view(request):
             trans.save()
             return redirect(f"{request.path}?workspace={current_workspace.id}&year={selected_year}&month={selected_month}")
 
-    # 4. POST: Metas do Mês (bloco independente no nível principal do POST)
+    # 4. POST: Metas do Mês
     if request.method == 'POST' and 'save_goals' in request.POST and current_workspace:
         raw_rev = request.POST.get('revenue_goal', '').replace(',', '.').strip()
         raw_exp = request.POST.get('expense_limit', '').replace(',', '.').strip()
@@ -108,7 +108,12 @@ def dashboard_view(request):
     income_chart_labels = []
     income_chart_data = []
 
-    # Variáveis de Metas
+    # Histórico Semestral
+    history_labels = []
+    history_income_data = []
+    history_expense_data = []
+
+    # Metas
     monthly_goal = None
     goal_form = None
     revenue_goal = Decimal('0.00')
@@ -120,10 +125,14 @@ def dashboard_view(request):
     revenue_remaining = Decimal('0.00')
     expense_remaining = Decimal('0.00')
 
+    month_abbrevs = {
+        1: 'Jan', 2: 'Fev', 3: 'Mar', 4: 'Abr', 5: 'Mai', 6: 'Jun',
+        7: 'Jul', 8: 'Ago', 9: 'Set', 10: 'Out', 11: 'Nov', 12: 'Dez'
+    }
+
     if current_workspace:
         workspace_categories = Category.objects.filter(workspace=current_workspace).order_by('name')
 
-        # Recupera a meta do período
         monthly_goal = MonthlyGoal.objects.filter(
             workspace=current_workspace,
             year=selected_year,
@@ -136,7 +145,7 @@ def dashboard_view(request):
             revenue_goal = monthly_goal.revenue_goal or Decimal('0.00')
             expense_limit = monthly_goal.expense_limit or Decimal('0.00')
 
-        # Base do período
+        # Período Ativo Selecionado
         base_qs = Transaction.objects.filter(
             workspace=current_workspace,
             transaction_date__year=selected_year,
@@ -150,7 +159,7 @@ def dashboard_view(request):
         pending_income = base_qs.filter(category__category_type='INCOME', status='PENDING').aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
         pending_expense = base_qs.filter(category__category_type='EXPENSE', status='PENDING').aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
 
-        # Cálculos de Progresso das Metas
+        # Progresso Metas
         if revenue_goal > Decimal('0.00'):
             calc_rev = float((total_income / revenue_goal) * Decimal('100'))
             revenue_percent = round(calc_rev, 1)
@@ -163,7 +172,7 @@ def dashboard_view(request):
             expense_bar_width = min(expense_percent, 100)
             expense_remaining = expense_limit - total_expense
 
-        # Gráfico de Despesas por Categoria
+        # Distribuição de Despesas
         expense_by_cat = base_qs.filter(
             category__category_type='EXPENSE', status='PAID'
         ).values('category__name').annotate(total=Sum('amount')).order_by('-total')
@@ -173,7 +182,7 @@ def dashboard_view(request):
             chart_labels.append(cat_name.upper())
             chart_data.append(float(item['total']))
 
-        # Gráfico de Receitas por Categoria
+        # Distribuição de Receitas
         income_by_cat = base_qs.filter(
             category__category_type='INCOME', status='PAID'
         ).values('category__name').annotate(total=Sum('amount')).order_by('-total')
@@ -183,7 +192,32 @@ def dashboard_view(request):
             income_chart_labels.append(cat_name.upper())
             income_chart_data.append(float(item['total']))
 
-        # Filtros no extrato
+        # Cálculo Retroativo dos Últimos 6 Meses
+        # Ordem cronológica: do 5º mês atrás até o mês selecionado
+        for offset in range(5, -1, -1):
+            # Subtrai offset meses do período selecionado
+            calc_m = selected_month - offset
+            calc_y = selected_year
+            while calc_m <= 0:
+                calc_m += 12
+                calc_y -= 1
+
+            m_qs = Transaction.objects.filter(
+                workspace=current_workspace,
+                transaction_date__year=calc_y,
+                transaction_date__month=calc_m,
+                status='PAID'
+            )
+
+            m_inc = m_qs.filter(category__category_type='INCOME').aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
+            m_exp = m_qs.filter(category__category_type='EXPENSE').aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
+
+            label_str = f"{month_abbrevs[calc_m]}/{str(calc_y)[2:]}"
+            history_labels.append(label_str)
+            history_income_data.append(float(m_inc))
+            history_expense_data.append(float(m_exp))
+
+        # Filtros do Extrato
         table_qs = base_qs
 
         if search_query:
@@ -231,6 +265,10 @@ def dashboard_view(request):
         'chart_data_json': json.dumps(chart_data),
         'income_chart_labels_json': json.dumps(income_chart_labels),
         'income_chart_data_json': json.dumps(income_chart_data),
+        # Dados do Histórico Semestral
+        'history_labels_json': json.dumps(history_labels),
+        'history_income_data_json': json.dumps(history_income_data),
+        'history_expense_data_json': json.dumps(history_expense_data),
         'search_query': search_query,
         'filter_type': filter_type,
         'filter_category': filter_category,
