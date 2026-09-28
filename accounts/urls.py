@@ -7,6 +7,9 @@ urlpatterns = [
     path('login/', auth_views.LoginView.as_view(template_name='accounts/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
 
+    # Perfil e Alteração de Senha do Usuário Logado
+    path('perfil/', views.profile_view, name='profile'),
+
     # Rotas de redefinição sem depender de e-mail externo
     path('esqueci-senha/', views.request_password_reset_view, name='password_reset_request'),
     path('redefinir-senha/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(

@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 
 class Workspace(models.Model):
     WORKSPACE_TYPE_CHOICES = [
-        ('BUSINESS', 'Salão de Beleza / PJ'),
+        ('BUSINESS', 'Empresa / PJ'),
         ('PERSONAL', 'Finanças Pessoais / PF'),
     ]
 

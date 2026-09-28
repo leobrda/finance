@@ -22,9 +22,9 @@
             <span class="text-xs font-bold uppercase tracking-widest border border-black px-2 py-0.5 bg-[#FFE600]">FINANCE</span>
         </div>
         <div class="flex items-center">
-            <div class="px-6 py-4 border-l-2 border-black text-xs font-bold uppercase tracking-wider hidden md:block">
-                Conta: {{ request.user.first_name|default:request.user.username }}
-            </div>
+            <a href="{% url 'profile' %}" class="h-full px-6 py-4 border-l-2 border-black bg-white hover:bg-[#FFE600] transition text-xs font-black uppercase tracking-wider hidden md:flex items-center gap-2" title="Editar Perfil e Senha">
+                <i data-lucide="user" class="w-4 h-4"></i> Conta: {{ request.user.first_name|default:request.user.username }}
+            </a>
             <form action="{% url 'logout' %}" method="post" class="h-full">
                 {% csrf_token %}
                 <button type="submit" class="h-full px-6 py-4 border-l-2 border-black bg-black text-white hover:bg-[#FF4A22] transition text-xs font-bold uppercase tracking-wider flex items-center gap-2">
