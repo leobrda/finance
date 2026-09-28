@@ -1,15 +1,17 @@
-from django.contrib.auth import login
+import resend
+from django.conf import settings
+from django.shortcuts import render, redirect
+from django.contrib.auth import login, update_session_auth_hash
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.urls import reverse
+
 from .forms import RegisterForm, UserProfileForm, CustomPasswordChangeForm
 from .services import setup_new_user_workspaces
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.contrib.auth import update_session_auth_hash
 
 
 def register_view(request):
@@ -30,7 +32,7 @@ def register_view(request):
 
 
 def request_password_reset_view(request):
-    reset_url = None
+    email_sent = False
     user_found = False
 
     if request.method == 'POST':
@@ -41,16 +43,47 @@ def request_password_reset_view(request):
             user_found = True
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             token = default_token_generator.make_token(user)
-            # Monta a URL completa de redefinição
             path = reverse('password_reset_confirm_direct', kwargs={'uidb64': uid, 'token': token})
             reset_url = request.build_absolute_uri(path)
-        else:
-            user_found = False
+
+            # Configura a chave do Resend vinda do settings.py
+            resend.api_key = getattr(settings, 'RESEND_API_KEY', '')
+
+            try:
+                resend.Emails.send({
+                    "from": settings.DEFAULT_FROM_EMAIL,
+                    "to": user.email,
+                    "subject": "[FIN. FINANCE] Redefinição de Senha",
+                    "html": f"""
+                    <div style="font-family: 'Courier New', monospace; padding: 24px; border: 3px solid #000; max-width: 520px; background: #FFF;">
+                        <div style="background: #FFE600; padding: 12px; border: 2px solid #000; margin-bottom: 20px;">
+                            <h1 style="margin: 0; font-size: 20px; text-transform: uppercase;">FIN. FINANCE</h1>
+                        </div>
+                        <h2 style="font-size: 16px; text-transform: uppercase;">Recuperação de Senha</h2>
+                        <p style="font-size: 13px; line-height: 1.5; color: #222;">
+                            Olá <strong>{user.first_name or user.username}</strong>,<br>
+                            Recebemos uma solicitação para redefinir sua senha de acesso.
+                        </p>
+                        <div style="margin: 24px 0;">
+                            <a href="{reset_url}" style="display: block; text-align: center; background: #000; color: #FFF; padding: 12px; font-weight: bold; text-decoration: none; border: 2px solid #000; text-transform: uppercase;">
+                                Clique aqui para criar nova senha →
+                            </a>
+                        </div>
+                        <p style="font-size: 11px; color: #777; margin-top: 20px;">
+                            Se você não solicitou essa redefinição, apenas desconsidere esta mensagem.
+                        </p>
+                    </div>
+                    """
+                })
+                email_sent = True
+            except Exception as e:
+                print(f"Erro ao enviar via Resend: {e}")
+                email_sent = False
 
     return render(request, 'accounts/password_reset_request.html', {
-        'reset_url': reset_url,
+        'submitted': request.method == 'POST',
         'user_found': user_found,
-        'submitted': request.method == 'POST'
+        'email_sent': email_sent
     })
 
 
@@ -71,7 +104,6 @@ def profile_view(request):
             password_form = CustomPasswordChangeForm(user=request.user, data=request.POST)
             if password_form.is_valid():
                 user = password_form.save()
-                # Mantém o usuário logado após trocar a senha
                 update_session_auth_hash(request, user)
                 messages.success(request, "Senha alterada com sucesso!")
                 return redirect('profile')

@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 import os
 from pathlib import Path
 from decouple import config, Csv
@@ -115,3 +116,8 @@ MAILERS = {
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/auth/login/'
 LOGIN_URL = '/auth/login/'
+
+load_dotenv()
+
+RESEND_API_KEY = os.getenv('RESEND_API_KEY', '')
+DEFAULT_FROM_EMAIL = 'FIN. FINANCE <onboarding@resend.dev>'
