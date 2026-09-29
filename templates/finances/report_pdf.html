@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório Mensal — FIN. FINANCE</title>
+    <style>
+        @page {
+            size: a4 portrait;
+            margin: 1.2cm 1.2cm 1.4cm 1.2cm;
+            @bottom-right {
+                content: "Página " counter(page) " de " counter(pages);
+                font-size: 8pt;
+                font-family: Helvetica, Arial, sans-serif;
+                font-weight: bold;
+            }
+        }
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            color: #000000;
+            background-color: #FFFFFF;
+            font-size: 9pt;
+            line-height: 1.3;
+        }
+        .header-table {
+            width: 100%;
+            border-bottom: 3px solid #000000;
+            padding-bottom: 8px;
+            margin-bottom: 14px;
+        }
+        .brand-title {
+            font-size: 24pt;
+            font-weight: 900;
+            margin: 0;
+            letter-spacing: -1px;
+        }
+        .tag-badge {
+            background-color: #FFE600;
+            border: 2px solid #000000;
+            padding: 3px 6px;
+            font-size: 8pt;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .meta-box {
+            font-size: 8pt;
+            text-align: right;
+            font-weight: bold;
+        }
+        .kpi-table {
+            width: 100%;
+            margin-bottom: 14px;
+            border-collapse: collapse;
+        }
+        .kpi-card {
+            border: 2px solid #000000;
+            padding: 8px 10px;
+            background-color: #FFFFFF;
+        }
+        .kpi-card-yellow {
+            background-color: #FFE600;
+        }
+        .kpi-card-orange {
+            background-color: #FF4A22;
+            color: #FFFFFF;
+        }
+        .kpi-title {
+            font-size: 7.5pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 3px;
+        }
+        .kpi-value {
+            font-size: 14pt;
+            font-weight: 900;
+            font-family: Courier, monospace;
+        }
+        .section-title {
+            font-size: 10pt;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #000000;
+            padding-bottom: 4px;
+            margin-top: 12px;
+            margin-bottom: 8px;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 2px solid #000000;
+            margin-bottom: 12px;
+        }
+        .data-table th {
+            background-color: #000000;
+            color: #FFFFFF;
+            font-size: 7.5pt;
+            font-weight: 900;
+            text-transform: uppercase;
+            padding: 5px 6px;
+            text-align: left;
+            border-right: 1px solid #FFFFFF;
+        }
+        .data-table td {
+            padding: 5px 6px;
+            font-size: 8pt;
+            border-bottom: 1px solid #000000;
+            border-right: 1px solid #E5E5E5;
+        }
+        .data-table tr:nth-child(even) td {
+            background-color: #F8F8F8;
+        }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .font-mono { font-family: Courier, monospace; font-weight: bold; }
+        .expense-text { color: #FF4A22; }
+        .category-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+        }
+        .category-table td {
+            padding: 4px 6px;
+            border: 1px solid #000000;
+            font-size: 8pt;
+        }
+        .footer-note {
+            margin-top: 14px;
+            border-top: 2px solid #000000;
+            padding-top: 6px;
+            font-size: 7.5pt;
+            color: #555555;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Cabeçalho Neobrutalista -->
+    <table class="header-table">
+        <tr>
+            <td style="width: 55%; vertical-align: middle;">
+                <span class="brand-title">FIN.</span>
+                <span class="tag-badge">RELATÓRIO MENSAL</span>
+                <p style="margin: 3px 0 0 0; font-size: 8.5pt; font-weight: bold; text-transform: uppercase;">
+                    Espaço: {{ workspace.name }}
+                </p>
+            </td>
+            <td style="width: 45%; vertical-align: middle;" class="meta-box">
+                <p style="margin: 0; font-size: 11pt; font-weight: 900;">
+                    {{ month_name|upper }} / {{ selected_year }}
+                </p>
+                <p style="margin: 2px 0 0 0; color: #666666;">
+                    Gerado em: {{ today_date|date:"d/m/Y H:i" }}
+                </p>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Indicadores Principais (KPIs) -->
+    <table class="kpi-table">
+        <tr>
+            <td style="width: 32%; padding-right: 6px;">
+                <div class="kpi-card">
+                    <div class="kpi-title">Receitas Pagas</div>
+                    <div class="kpi-value">+ R$ {{ total_income|floatformat:2 }}</div>
+                </div>
+            </td>
+            <td style="width: 32%; padding-right: 6px;">
+                <div class="kpi-card">
+                    <div class="kpi-title" style="color: #FF4A22;">Despesas Pagas</div>
+                    <div class="kpi-value expense-text">- R$ {{ total_expense|floatformat:2 }}</div>
+                </div>
+            </td>
+            <td style="width: 36%;">
+                <div class="kpi-card {% if balance >= 0 %}kpi-card-yellow{% else %}kpi-card-orange{% endif %}">
+                    <div class="kpi-title" style="{% if balance < 0 %}color: #FFFFFF;{% endif %}">Saldo Consolidado</div>
+                    <div class="kpi-value">R$ {{ balance|floatformat:2 }}</div>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Resumo de Despesas por Categoria -->
+    {% if expense_by_cat %}
+        <div class="section-title">Distribuição de Despesas por Categoria</div>
+        <table class="category-table">
+            <tr style="background-color: #EFEFEF; font-weight: bold;">
+                <td style="width: 60%;">Categoria</td>
+                <td style="width: 25%; text-align: right;">Total Liquidado</td>
+                <td style="width: 15%; text-align: right;">% Mês</td>
+            </tr>
+            {% for item in expense_by_cat %}
+            <tr>
+                <td><strong>● {{ item.name|upper }}</strong></td>
+                <td class="text-right font-mono expense-text">R$ {{ item.total|floatformat:2 }}</td>
+                <td class="text-right font-mono">{{ item.percent|floatformat:1 }}%</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+
+    <!-- Extrato Consolidado das Operações -->
+    <div class="section-title">Extrato Detalhado do Período ({{ transactions|length }} Registros)</div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width: 12%;">Data</th>
+                <th style="width: 34%;">Descrição</th>
+                <th style="width: 18%;">Categoria</th>
+                <th style="width: 14%;">Método</th>
+                <th style="width: 10%;">Status</th>
+                <th style="width: 12%; text-align: right;">Valor</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in transactions %}
+            <tr>
+                <td class="text-center font-mono">{{ t.transaction_date|date:"d/m/Y" }}</td>
+                <td>
+                    <strong>{{ t.description }}</strong>
+                    {% if t.receipt %}<span style="font-size: 6.5pt; font-weight: bold; background: #FFE600; padding: 1px 3px; border: 1px solid black; margin-left: 3px;">[ANEXO]</span>{% endif %}
+                </td>
+                <td>{{ t.category.name|default:"Sem Categoria" }}</td>
+                <td class="font-mono" style="font-size: 7.5pt;">{{ t.get_payment_method_display }}</td>
+                <td class="text-center" style="font-size: 7pt; font-weight: bold;">
+                    {% if t.status == 'PAID' %}PAGO{% else %}PENDENTE{% endif %}
+                </td>
+                <td class="text-right font-mono {% if t.category.category_type == 'INCOME' %}color: #000;{% else %}expense-text{% endif %}">
+                    {% if t.category.category_type == 'INCOME' %}+{% else %}-{% endif %} {{ t.amount|floatformat:2 }}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center" style="padding: 15px; color: #888;">
+                    Nenhum registro encontrado para este período.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Rodapé -->
+    <div class="footer-note">
+        FIN. FINANCE — Documento emitido para fins de conferência contábil e controle financeiro interno.
+    </div>
+
+</body>
+</html>

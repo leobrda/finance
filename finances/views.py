@@ -2,7 +2,7 @@ import json
 import csv
 import calendar
 from decimal import Decimal
-from datetime import date
+from datetime import date, datetime
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
@@ -13,6 +13,10 @@ from accounts.models import Workspace
 from accounts.forms import WorkspaceForm
 from .models import Transaction, Category, MonthlyGoal, RecurringExpense
 from .forms import TransactionForm, CategoryForm, MonthlyGoalForm, RecurringExpenseForm
+
+from io import BytesIO
+from django.template.loader import get_template
+from xhtml2pdf import pisa
 
 
 @login_required
@@ -487,3 +491,79 @@ def delete_category_view(request, pk):
     if request.method == 'POST':
         category.delete()
     return redirect(f"{reverse('manage_categories')}?workspace={workspace.id}")
+
+
+@login_required
+def export_monthly_report_pdf(request):
+    workspace_id = request.GET.get('workspace')
+    workspace = get_object_or_404(Workspace, id=workspace_id, user=request.user)
+
+    today = date.today()
+    try:
+        year = int(request.GET.get('year', today.year))
+        month = int(request.GET.get('month', today.month))
+    except (ValueError, TypeError):
+        year = today.year
+        month = today.month
+
+    month_names = {
+        1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril',
+        5: 'Maio', 6: 'Junho', 7: 'Julho', 8: 'Agosto',
+        9: 'Setembro', 10: 'Outubro', 11: 'Novembro', 12: 'Dezembro'
+    }
+
+    base_qs = Transaction.objects.filter(
+        workspace=workspace,
+        transaction_date__year=year,
+        transaction_date__month=month
+    )
+
+    transactions = base_qs.order_by('transaction_date', 'created_at')
+
+    total_income = base_qs.filter(category__category_type='INCOME', status='PAID').aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
+    total_expense = base_qs.filter(category__category_type='EXPENSE', status='PAID').aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
+    balance = total_income - total_expense
+
+    # Distribuição por categoria calculada para a tabela do relatório
+    expense_cats_raw = base_qs.filter(category__category_type='EXPENSE', status='PAID') \
+                              .values('category__name') \
+                              .annotate(total=Sum('amount')) \
+                              .order_by('-total')
+
+    expense_by_cat = []
+    for item in expense_cats_raw:
+        cat_total = item['total'] or Decimal('0.00')
+        percent = (cat_total / total_expense * Decimal('100')) if total_expense > Decimal('0.00') else Decimal('0.00')
+        expense_by_cat.append({
+            'name': item['category__name'] or 'Sem Categoria',
+            'total': cat_total,
+            'percent': float(percent)
+        })
+
+    context = {
+        'workspace': workspace,
+        'selected_year': year,
+        'selected_month': month,
+        'month_name': month_names.get(month, ''),
+        'today_date': datetime.now(),
+        'transactions': transactions,
+        'total_income': total_income,
+        'total_expense': total_expense,
+        'balance': balance,
+        'expense_by_cat': expense_by_cat,
+    }
+
+    template = get_template('finances/report_pdf.html')
+    html = template.render(context)
+    result = BytesIO()
+
+    # Geração do arquivo binário PDF via xhtml2pdf
+    pdf_status = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result, encoding='UTF-8')
+
+    if not pdf_status.err:
+        filename = f"relatorio_{workspace.name.lower().replace(' ', '_')}_{month:02d}_{year}.pdf"
+        response = HttpResponse(result.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="{filename}"'
+        return response
+
+    return HttpResponse("Erro ao gerar o relatório em PDF.", status=500)

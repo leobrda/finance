@@ -14,4 +14,5 @@ urlpatterns = [
     # Rotas de Despesas Recorrentes & Assinaturas
     path('recorrentes/criar/', views.create_recurring_expense_view, name='create_recurring_expense'),
     path('recorrentes/<int:pk>/excluir/', views.delete_recurring_expense_view, name='delete_recurring_expense'),
+    path('transactions/report-pdf/', views.export_monthly_report_pdf, name='export_monthly_report_pdf'),
 ]
