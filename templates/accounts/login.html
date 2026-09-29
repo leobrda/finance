@@ -2,59 +2,70 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ENTRAR — FIN. FINANCE</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;900&display=swap');
-        body { font-family: 'Space Grotesk', sans-serif; }
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            overflow-x: hidden;
+        }
     </style>
 </head>
-<body class="bg-[#F6F6F2] text-black min-h-screen flex items-center justify-center p-4">
-    <div class="w-full max-w-md border-4 border-black bg-white shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]">
-        <div class="p-6 border-b-4 border-black bg-[#FFE600] flex justify-between items-center">
-            <span class="text-3xl font-black tracking-tighter uppercase">FIN.</span>
-            <span class="text-xs font-black uppercase tracking-widest border-2 border-black px-2 py-0.5 bg-white">ACESSO</span>
+<body class="bg-[#F6F6F2] text-black min-h-screen flex items-center justify-center p-3 sm:p-6">
+    <div class="w-full max-w-md border-2 sm:border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+
+        <!-- Header do Card -->
+        <div class="p-4 sm:p-6 border-b-2 sm:border-b-4 border-black bg-[#FFE600] flex justify-between items-center">
+            <span class="text-2xl sm:text-3xl font-black tracking-tighter uppercase">FIN.</span>
+            <span class="text-[10px] sm:text-xs font-black uppercase tracking-widest border-2 border-black px-2 py-0.5 bg-white">ACESSO</span>
         </div>
 
-        <div class="p-8">
+        <div class="p-4 sm:p-8">
             {% if request.GET.reset == 'success' %}
-                <div class="border-2 border-black bg-emerald-300 text-black p-3 mb-6 text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                <div class="border-2 border-black bg-emerald-300 text-black p-3 mb-6 text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                     <span class="text-base font-black">✓</span> Senha redefinida com sucesso! Faça seu login.
                 </div>
             {% endif %}
 
             {% if form.errors %}
-                <div class="border-2 border-black bg-[#FF4A22] text-white p-3 mb-6 text-xs font-bold uppercase tracking-wider">
+                <div class="border-2 border-black bg-[#FF4A22] text-white p-3 mb-6 text-xs font-bold uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                     Credenciais incorretas. Verifique o usuário e a senha.
                 </div>
             {% endif %}
 
-            <form method="post" class="space-y-5">
+            <form method="post" class="space-y-4 sm:space-y-5">
                 {% csrf_token %}
                 <div>
-                    <label class="block text-xs font-black uppercase tracking-widest mb-1">Nome de Usuário</label>
-                    <input type="text" name="username" autofocus required class="w-full border-2 border-black p-3 text-sm outline-none focus:bg-[#FFE600] font-bold">
+                    <label class="block text-[11px] sm:text-xs font-black uppercase tracking-widest mb-1">Nome de Usuário</label>
+                    <input type="text" name="username" autofocus required class="w-full border-2 border-black p-2.5 sm:p-3 text-sm outline-none focus:bg-[#FFE600] font-bold transition">
                 </div>
                 <div>
                     <div class="flex justify-between items-center mb-1">
-                        <label class="block text-xs font-black uppercase tracking-widest">Senha</label>
-                        <a href="{% url 'password_reset_request' %}" class="text-[11px] font-bold uppercase hover:text-[#FF4A22] underline">Esqueci minha senha</a>
+                        <label class="block text-[11px] sm:text-xs font-black uppercase tracking-widest">Senha</label>
+                        <a href="{% url 'password_reset_request' %}" class="text-[10px] sm:text-[11px] font-bold uppercase hover:text-[#FF4A22] underline">Esqueci minha senha</a>
                     </div>
-                    <input type="password" name="password" required class="w-full border-2 border-black p-3 text-sm outline-none focus:bg-[#FFE600] font-bold">
+                    <input type="password" name="password" required class="w-full border-2 border-black p-2.5 sm:p-3 text-sm outline-none focus:bg-[#FFE600] font-bold transition">
                 </div>
 
-                <button type="submit" class="w-full py-4 bg-black text-white hover:bg-[#FF4A22] transition border-2 border-black text-xs font-black uppercase tracking-widest">
+                <button type="submit" class="w-full py-3.5 sm:py-4 bg-black text-white hover:bg-[#FFE600] hover:text-black transition border-2 border-black text-xs font-black uppercase tracking-widest shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                     Entrar na Aplicação →
                 </button>
             </form>
 
-            <div class="mt-8 pt-6 border-t-2 border-black flex justify-between items-center text-xs font-bold uppercase">
+            <div class="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t-2 border-black flex justify-between items-center text-xs font-bold uppercase">
                 <span>Sem conta ativa?</span>
-                <a href="{% url 'register' %}" class="bg-[#FFE600] border-2 border-black px-3 py-1.5 hover:bg-black hover:text-white transition">
+                <a href="{% url 'register' %}" class="bg-[#FFE600] border-2 border-black px-3 py-1.5 hover:bg-black hover:text-white transition shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                     Criar Conta
                 </a>
             </div>
         </div>
     </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
 </body>
 </html>
