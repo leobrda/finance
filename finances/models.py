@@ -1,5 +1,13 @@
 from django.db import models
+from django.core.validators import FileExtensionValidator
 from accounts.models import Workspace
+
+
+def transaction_receipt_path(instance, filename):
+    # Organiza os arquivos em: media/receipts/<workspace_id>/<ano>/<mes>/<nome_do_arquivo>
+    date_path = instance.transaction_date.strftime('%Y/%m') if instance.transaction_date else 'geral'
+    return f"receipts/{instance.workspace_id}/{date_path}/{filename}"
+
 
 class Category(models.Model):
     CATEGORY_TYPE_CHOICES = [
@@ -69,6 +77,17 @@ class Transaction(models.Model):
     payment_method = models.CharField('Forma de Pagamento', max_length=20, choices=PAYMENT_METHOD_CHOICES, default='PIX')
     status = models.CharField('Status', max_length=10, choices=STATUS_CHOICES, default='PAID')
     notes = models.TextField('Observações', blank=True, null=True)
+
+    # Campo de anexo de fatura / comprovante de pagamento
+    receipt = models.FileField(
+        'Comprovante / Fatura',
+        upload_to=transaction_receipt_path,
+        null=True,
+        blank=True,
+        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'jpg', 'jpeg', 'png', 'webp'])],
+        help_text='Anexo em imagem ou PDF do comprovante ou fatura.'
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

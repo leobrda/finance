@@ -121,3 +121,6 @@ load_dotenv()
 
 RESEND_API_KEY = os.getenv('RESEND_API_KEY', '')
 DEFAULT_FROM_EMAIL = 'FIN. FINANCE <onboarding@resend.dev>'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
