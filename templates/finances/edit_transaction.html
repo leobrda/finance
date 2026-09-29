@@ -1,9 +1,20 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>EDITAR TRANSAÇÃO — FIN. FINANCE</title>
+    <title>EDITAR LANÇAMENTO — FIN. FINANCE</title>
+
+    <!-- Configurações PWA e Estética Neobrutalista -->
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <meta id="themeColorMeta" name="theme-color" content="#FFE600">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FIN.">
+    <link rel="apple-touch-icon" href="{% static 'icons/icon-192x192.png' %}">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -11,7 +22,9 @@
         body {
             font-family: 'Space Grotesk', sans-serif;
             overflow-x: hidden;
+            transition: background-color 0.2s ease, color 0.2s ease;
         }
+
         /* Garante estilo neobrutalista padrão nos widgets renderizados pelo Django */
         input[type="text"], input[type="number"], input[type="date"], select, textarea {
             width: 100%;
@@ -21,30 +34,97 @@
             outline: none;
             background-color: #fff;
             font-weight: 700;
+            transition: background-color 0.15s ease-in-out;
         }
         input:focus, select:focus, textarea:focus {
             background-color: #FFE600;
         }
+
+        /* Regras do Modo Escuro Neobrutalista */
+        body.dark-mode {
+            background-color: #121212 !important;
+            color: #FFFFFF !important;
+        }
+
+        body.dark-mode .bg-white {
+            background-color: #1E1E1E !important;
+            color: #FFFFFF !important;
+        }
+
+        body.dark-mode .bg-\[\#F6F6F2\] {
+            background-color: #282828 !important;
+            color: #FFFFFF !important;
+        }
+
+        body.dark-mode .border-black {
+            border-color: #FFFFFF !important;
+        }
+
+        body.dark-mode input[type="text"],
+        body.dark-mode input[type="number"],
+        body.dark-mode input[type="date"],
+        body.dark-mode select,
+        body.dark-mode textarea {
+            background-color: #1E1E1E !important;
+            color: #FFFFFF !important;
+            border-color: #FFFFFF !important;
+        }
+
+        body.dark-mode input:focus,
+        body.dark-mode select:focus,
+        body.dark-mode textarea:focus {
+            background-color: #2D2D2D !important;
+        }
+
+        body.dark-mode .shadow-\[4px_4px_0px_0px_rgba\(0\,0\,0\,1\)\],
+        body.dark-mode .shadow-\[8px_8px_0px_0px_rgba\(0\,0\,0\,1\)\],
+        body.dark-mode .shadow-\[2px_2px_0px_0px_rgba\(0\,0\,0\,1\)\] {
+            box-shadow: 4px 4px 0px 0px rgba(255, 255, 255, 0.9) !important;
+        }
     </style>
+
+    <!-- Injeção Imediata do Tema (Evita tela piscar ao carregar) -->
+    <script>
+        (function() {
+            if (localStorage.getItem('fin_theme_mode') === 'dark') {
+                document.documentElement.classList.add('dark-mode');
+                document.addEventListener('DOMContentLoaded', () => {
+                    document.body.classList.add('dark-mode');
+                    const meta = document.getElementById('themeColorMeta');
+                    if (meta) meta.setAttribute('content', '#121212');
+                    const icon = document.getElementById('themeIconEditTransaction');
+                    if (icon) icon.setAttribute('data-lucide', 'sun');
+                });
+            }
+        })();
+    </script>
 </head>
 <body class="bg-[#F6F6F2] text-black min-h-screen flex items-center justify-center p-3 sm:p-6 my-auto">
     <div class="w-full max-w-lg border-2 sm:border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] my-4">
 
         <!-- Header Neobrutalista do Card -->
-        <div class="p-4 sm:p-6 border-b-2 sm:border-b-4 border-black bg-[#FFE600] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+        <div class="p-4 sm:p-6 border-b-2 sm:border-b-4 border-black bg-[#FFE600] text-black flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
             <div>
-                <span class="text-[9px] font-black uppercase tracking-widest border border-black px-1.5 py-0.5 bg-white mb-1 inline-block">
+                <span class="text-[9px] font-black uppercase tracking-widest border border-black px-1.5 py-0.5 bg-white text-black mb-1 inline-block">
                     Espaço: {{ workspace.name }}
                 </span>
                 <h1 class="text-xl sm:text-2xl font-black tracking-tighter uppercase block">
                     Editar Lançamento
                 </h1>
             </div>
-            <a href="{% url 'dashboard' %}?workspace={{ workspace.id }}"
-               class="self-end sm:self-auto p-1.5 border-2 border-black bg-white hover:bg-black hover:text-white transition"
-               title="Fechar / Voltar">
-                <i data-lucide="x" class="w-4 h-4 stroke-[3]"></i>
-            </a>
+            <div class="self-end sm:self-auto flex items-center gap-2">
+                <!-- Botão Alternador de Tema Escuro / Claro -->
+                <button type="button" onclick="toggleDarkModeEditTransaction()"
+                        class="p-1.5 border-2 border-black bg-white text-black hover:bg-black hover:text-white transition flex items-center justify-center shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
+                        title="Alternar Modo Claro / Noturno">
+                    <i id="themeIconEditTransaction" data-lucide="moon" class="w-4 h-4"></i>
+                </button>
+                <a href="{% url 'dashboard' %}?workspace={{ workspace.id }}"
+                   class="p-1.5 border-2 border-black bg-white text-black hover:bg-black hover:text-white transition"
+                   title="Fechar / Voltar">
+                    <i data-lucide="x" class="w-4 h-4 stroke-[3]"></i>
+                </a>
+            </div>
         </div>
 
         <form method="post" enctype="multipart/form-data" class="p-4 sm:p-6 space-y-4">
@@ -65,7 +145,7 @@
                 </div>
             </div>
 
-            <!-- Adaptado: 1 coluna no mobile, 3 colunas em telas maiores -->
+            <!-- 1 coluna no mobile, 3 colunas em telas maiores -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                     <label class="block text-[11px] sm:text-xs font-black uppercase tracking-wider mb-1">Categoria</label>
@@ -94,7 +174,7 @@
                             <span class="text-xs font-bold uppercase truncate">Arquivo anexado</span>
                         </div>
                         <a href="{{ form.instance.receipt.url }}" target="_blank"
-                           class="px-2.5 py-1 border-2 border-black bg-[#FFE600] hover:bg-black hover:text-white transition text-[10px] font-black uppercase tracking-wider flex items-center gap-1 shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                           class="px-2.5 py-1 border-2 border-black bg-[#FFE600] text-black hover:bg-black hover:text-white transition text-[10px] font-black uppercase tracking-wider flex items-center gap-1 shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                             <i data-lucide="external-link" class="w-3 h-3 stroke-[2.5]"></i> Visualizar
                         </a>
                     </div>
@@ -110,7 +190,7 @@
 
             <div class="flex gap-3 pt-4 border-t-2 border-black">
                 <a href="{% url 'dashboard' %}?workspace={{ workspace.id }}"
-                   class="w-1/2 py-2.5 sm:py-3 border-2 border-black text-xs font-black uppercase text-center hover:bg-neutral-100 flex items-center justify-center transition">
+                   class="w-1/2 py-2.5 sm:py-3 border-2 border-black text-xs font-black uppercase text-center hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center justify-center transition">
                     Cancelar
                 </a>
                 <button type="submit"
@@ -120,6 +200,49 @@
             </div>
         </form>
     </div>
+
+    <!-- Alternador com Sincronização Global -->
+    <script>
+        function applyEditTransactionTheme(isDark) {
+            const metaTheme = document.getElementById('themeColorMeta');
+            const themeIcon = document.getElementById('themeIconEditTransaction');
+
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                if (metaTheme) metaTheme.setAttribute('content', '#121212');
+                if (themeIcon) themeIcon.setAttribute('data-lucide', 'sun');
+            } else {
+                document.body.classList.remove('dark-mode');
+                if (metaTheme) metaTheme.setAttribute('content', '#FFE600');
+                if (themeIcon) themeIcon.setAttribute('data-lucide', 'moon');
+            }
+
+            lucide.createIcons();
+        }
+
+        function toggleDarkModeEditTransaction() {
+            const isCurrentlyDark = document.body.classList.contains('dark-mode');
+            const nextModeIsDark = !isCurrentlyDark;
+            localStorage.setItem('fin_theme_mode', nextModeIsDark ? 'dark' : 'light');
+            applyEditTransactionTheme(nextModeIsDark);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('fin_theme_mode');
+            applyEditTransactionTheme(savedTheme === 'dark');
+        });
+    </script>
+
+    <!-- Registro do Service Worker (PWA) -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((reg) => console.log('FIN. PWA ativo com escopo:', reg.scope))
+                    .catch((err) => console.error('Falha ao registrar Service Worker:', err));
+            });
+        }
+    </script>
 
     <script>
         lucide.createIcons();

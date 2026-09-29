@@ -1,9 +1,20 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>EDITAR CATEGORIA — FIN. FINANCE</title>
+
+    <!-- Configurações PWA e Estética Neobrutalista -->
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <meta id="themeColorMeta" name="theme-color" content="#FFE600">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FIN.">
+    <link rel="apple-touch-icon" href="{% static 'icons/icon-192x192.png' %}">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -11,46 +22,104 @@
         body {
             font-family: 'Space Grotesk', sans-serif;
             overflow-x: hidden;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        /* Regras do Modo Escuro Neobrutalista */
+        body.dark-mode {
+            background-color: #121212 !important;
+            color: #FFFFFF !important;
+        }
+
+        body.dark-mode .bg-white {
+            background-color: #1E1E1E !important;
+            color: #FFFFFF !important;
+        }
+
+        body.dark-mode .border-black {
+            border-color: #FFFFFF !important;
+        }
+
+        body.dark-mode input[type="text"],
+        body.dark-mode select {
+            background-color: #1E1E1E !important;
+            color: #FFFFFF !important;
+            border-color: #FFFFFF !important;
+        }
+
+        body.dark-mode input[type="text"]:focus,
+        body.dark-mode select:focus {
+            background-color: #2D2D2D !important;
+        }
+
+        body.dark-mode .shadow-\[4px_4px_0px_0px_rgba\(0\,0\,0\,1\)\],
+        body.dark-mode .shadow-\[8px_8px_0px_0px_rgba\(0\,0\,0\,1\)\],
+        body.dark-mode .shadow-\[2px_2px_0px_0px_rgba\(0\,0\,0\,1\)\] {
+            box-shadow: 4px 4px 0px 0px rgba(255, 255, 255, 0.9) !important;
         }
     </style>
+
+    <!-- Injeção Imediata do Tema (Evita tela piscar ao carregar) -->
+    <script>
+        (function() {
+            if (localStorage.getItem('fin_theme_mode') === 'dark') {
+                document.documentElement.classList.add('dark-mode');
+                document.addEventListener('DOMContentLoaded', () => {
+                    document.body.classList.add('dark-mode');
+                    const meta = document.getElementById('themeColorMeta');
+                    if (meta) meta.setAttribute('content', '#121212');
+                    const icon = document.getElementById('themeIconEditCategory');
+                    if (icon) icon.setAttribute('data-lucide', 'sun');
+                });
+            }
+        })();
+    </script>
 </head>
 <body class="bg-[#F6F6F2] text-black min-h-screen flex items-center justify-center p-3 sm:p-6">
 
     <div class="w-full max-w-md border-2 sm:border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-        <!-- Header do Card com Quebra Suave no Mobile -->
-        <div class="p-4 sm:p-6 border-b-2 sm:border-b-4 border-black bg-[#FFE600] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+        <!-- Header do Card -->
+        <div class="p-4 sm:p-6 border-b-2 sm:border-b-4 border-black bg-[#FFE600] text-black flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
             <div>
-                <span class="text-[9px] font-black uppercase tracking-widest border border-black px-1.5 py-0.5 bg-white mb-1 inline-block">
+                <span class="text-[9px] font-black uppercase tracking-widest border border-black px-1.5 py-0.5 bg-white text-black mb-1 inline-block">
                     Espaço: {{ workspace.name }}
                 </span>
                 <h1 class="text-xl sm:text-2xl font-black tracking-tighter uppercase block">
                     Editar Categoria
                 </h1>
             </div>
-            <a href="{% url 'manage_categories' %}?workspace={{ workspace.id }}"
-               class="self-end sm:self-auto p-1.5 border-2 border-black bg-white hover:bg-black hover:text-white transition"
-               title="Fechar / Voltar">
-                <i data-lucide="x" class="w-4 h-4 stroke-[3]"></i>
-            </a>
+            <div class="self-end sm:self-auto flex items-center gap-2">
+                <!-- Botão Alternador de Tema Escuro / Claro -->
+                <button type="button" onclick="toggleDarkModeEditCategory()"
+                        class="p-1.5 border-2 border-black bg-white text-black hover:bg-black hover:text-white transition flex items-center justify-center"
+                        title="Alternar Modo Claro / Noturno">
+                    <i id="themeIconEditCategory" data-lucide="moon" class="w-4 h-4"></i>
+                </button>
+                <a href="{% url 'manage_categories' %}?workspace={{ workspace.id }}"
+                   class="p-1.5 border-2 border-black bg-white text-black hover:bg-black hover:text-white transition"
+                   title="Fechar / Voltar">
+                    <i data-lucide="x" class="w-4 h-4 stroke-[3]"></i>
+                </a>
+            </div>
         </div>
 
         <form method="post" class="p-4 sm:p-6 space-y-4">
             {% csrf_token %}
             <div>
                 <label class="block text-[11px] sm:text-xs font-black uppercase tracking-wider mb-1">Nome da Categoria</label>
-                <input type="text" name="name" value="{{ form.name.value|default:'' }}" required class="w-full border-2 border-black p-2.5 text-sm outline-none focus:bg-[#FFE600] font-bold uppercase transition">
+                <input type="text" name="name" value="{{ form.name.value|default:'' }}" required class="w-full border-2 border-black p-2.5 text-sm outline-none focus:bg-[#FFE600] focus:text-black font-bold uppercase transition">
             </div>
 
             <div>
                 <label class="block text-[11px] sm:text-xs font-black uppercase tracking-wider mb-1">Tipo de Lançamento</label>
                 <select name="category_type" class="w-full border-2 border-black p-2.5 text-sm outline-none bg-white font-bold cursor-pointer">
-                    <option value="INCOME" {% if form.category_type.value == 'INCOME' %}selected{% endif %}>Receita (+)</option>
-                    <option value="EXPENSE" {% if form.category_type.value == 'EXPENSE' %}selected{% endif %}>Despesas (-)</option>
+                    <option class="text-black bg-white" value="INCOME" {% if form.category_type.value == 'INCOME' %}selected{% endif %}>Receita (+)</option>
+                    <option class="text-black bg-white" value="EXPENSE" {% if form.category_type.value == 'EXPENSE' %}selected{% endif %}>Despesas (-)</option>
                 </select>
             </div>
 
             <div class="flex gap-3 pt-4 border-t-2 border-black">
-                <a href="{% url 'manage_categories' %}?workspace={{ workspace.id }}" class="w-1/2 py-2.5 sm:py-3 border-2 border-black text-xs font-black uppercase text-center hover:bg-neutral-100 flex items-center justify-center transition">
+                <a href="{% url 'manage_categories' %}?workspace={{ workspace.id }}" class="w-1/2 py-2.5 sm:py-3 border-2 border-black text-xs font-black uppercase text-center hover:bg-neutral-100 dark:hover:bg-neutral-800 flex items-center justify-center transition">
                     Cancelar
                 </a>
                 <button type="submit" class="w-1/2 py-2.5 sm:py-3 border-2 border-black bg-black text-white hover:bg-[#FFE600] hover:text-black transition text-xs font-black uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
@@ -59,6 +128,49 @@
             </div>
         </form>
     </div>
+
+    <!-- Alternador com Sincronização Global -->
+    <script>
+        function applyEditCategoryTheme(isDark) {
+            const metaTheme = document.getElementById('themeColorMeta');
+            const themeIcon = document.getElementById('themeIconEditCategory');
+
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                if (metaTheme) metaTheme.setAttribute('content', '#121212');
+                if (themeIcon) themeIcon.setAttribute('data-lucide', 'sun');
+            } else {
+                document.body.classList.remove('dark-mode');
+                if (metaTheme) metaTheme.setAttribute('content', '#FFE600');
+                if (themeIcon) themeIcon.setAttribute('data-lucide', 'moon');
+            }
+
+            lucide.createIcons();
+        }
+
+        function toggleDarkModeEditCategory() {
+            const isCurrentlyDark = document.body.classList.contains('dark-mode');
+            const nextModeIsDark = !isCurrentlyDark;
+            localStorage.setItem('fin_theme_mode', nextModeIsDark ? 'dark' : 'light');
+            applyEditCategoryTheme(nextModeIsDark);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('fin_theme_mode');
+            applyEditCategoryTheme(savedTheme === 'dark');
+        });
+    </script>
+
+    <!-- Registro do Service Worker (PWA) -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((reg) => console.log('FIN. PWA ativo com escopo:', reg.scope))
+                    .catch((err) => console.error('Falha ao registrar Service Worker:', err));
+            });
+        }
+    </script>
 
     <script>
         lucide.createIcons();

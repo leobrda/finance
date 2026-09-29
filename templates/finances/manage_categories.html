@@ -1,9 +1,20 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>GERIR CATEGORIAS — FIN. FINANCE</title>
+
+    <!-- Configurações PWA e Estética Neobrutalista -->
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <meta id="themeColorMeta" name="theme-color" content="#FFE600">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FIN.">
+    <link rel="apple-touch-icon" href="{% static 'icons/icon-192x192.png' %}">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -11,8 +22,83 @@
         body {
             font-family: 'Space Grotesk', sans-serif;
             overflow-x: hidden;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        /* Regras do Modo Escuro Neobrutalista */
+        body.dark-mode {
+            background-color: #121212 !important;
+            color: #FFFFFF !important;
+        }
+
+        body.dark-mode header,
+        body.dark-mode .bg-white {
+            background-color: #1E1E1E !important;
+            color: #FFFFFF !important;
+        }
+
+        body.dark-mode .bg-\[\#F6F6F2\] {
+            background-color: #282828 !important;
+            color: #FFFFFF !important;
+        }
+
+        body.dark-mode .border-black {
+            border-color: #FFFFFF !important;
+        }
+
+        body.dark-mode .divide-black > :not([hidden]) ~ :not([hidden]) {
+            border-color: #FFFFFF !important;
+        }
+
+        body.dark-mode input[type="text"],
+        body.dark-mode select {
+            background-color: #1E1E1E !important;
+            color: #FFFFFF !important;
+            border-color: #FFFFFF !important;
+        }
+
+        body.dark-mode input[type="text"]:focus,
+        body.dark-mode select:focus {
+            background-color: #2D2D2D !important;
+        }
+
+        body.dark-mode .shadow-\[4px_4px_0px_0px_rgba\(0\,0\,0\,1\)\],
+        body.dark-mode .shadow-\[6px_6px_0px_0px_rgba\(0\,0\,0\,1\)\],
+        body.dark-mode .shadow-\[8px_8px_0px_0px_rgba\(0\,0\,0\,1\)\],
+        body.dark-mode .shadow-\[2px_2px_0px_0px_rgba\(0\,0\,0\,1\)\] {
+            box-shadow: 4px 4px 0px 0px rgba(255, 255, 255, 0.9) !important;
+        }
+
+        body.dark-mode tr.hover\:bg-neutral-50:hover,
+        body.dark-mode div.hover\:bg-neutral-50:hover {
+            background-color: #2D2D2D !important;
+        }
+
+        body.dark-mode .text-neutral-600,
+        body.dark-mode .text-neutral-800 {
+            color: #D4D4D8 !important;
+        }
+
+        body.dark-mode .text-neutral-400 {
+            color: #71717A !important;
         }
     </style>
+
+    <!-- Injeção Imediata do Tema (Evita tela piscar ao carregar) -->
+    <script>
+        (function() {
+            if (localStorage.getItem('fin_theme_mode') === 'dark') {
+                document.documentElement.classList.add('dark-mode');
+                document.addEventListener('DOMContentLoaded', () => {
+                    document.body.classList.add('dark-mode');
+                    const meta = document.getElementById('themeColorMeta');
+                    if (meta) meta.setAttribute('content', '#121212');
+                    const icon = document.getElementById('themeIconCategories');
+                    if (icon) icon.setAttribute('data-lucide', 'sun');
+                });
+            }
+        })();
+    </script>
 </head>
 <body class="bg-[#F6F6F2] text-black min-h-screen">
 
@@ -20,25 +106,35 @@
     <header class="border-b-2 sm:border-b-4 border-black bg-white sticky top-0 z-40">
         <div class="max-w-7xl mx-auto flex justify-between items-center px-3 sm:px-6 py-2.5 sm:py-3">
             <div class="flex items-center gap-2 sm:gap-3">
-                <span class="text-2xl sm:text-3xl font-black tracking-tighter uppercase">FIN.</span>
-                <span class="text-[9px] sm:text-xs font-black uppercase tracking-widest border border-black px-1.5 py-0.5 bg-[#FFE600]">
+                <a href="{% url 'dashboard' %}" class="text-2xl sm:text-3xl font-black tracking-tighter uppercase">FIN.</a>
+                <span class="text-[9px] sm:text-xs font-black uppercase tracking-widest border border-black px-1.5 py-0.5 bg-[#FFE600] text-black">
                     CATEGORIAS
                 </span>
             </div>
-            <a href="{% url 'dashboard' %}?workspace={{ workspace.id }}"
-               class="px-3 sm:px-5 py-1.5 sm:py-2.5 border-2 border-black bg-white hover:bg-black hover:text-white transition text-xs font-black uppercase tracking-wider flex items-center gap-1.5 sm:gap-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                <span>Voltar<span class="hidden sm:inline"> ao Painel</span></span>
-            </a>
+
+            <div class="flex items-center gap-2 sm:gap-3">
+                <!-- Botão Alternador de Tema Escuro / Claro -->
+                <button type="button" onclick="toggleDarkModeCategories()"
+                        class="p-2 border-2 border-black bg-white hover:bg-[#FFE600] hover:text-black transition flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                        title="Alternar Modo Claro / Noturno">
+                    <i id="themeIconCategories" data-lucide="moon" class="w-4 h-4"></i>
+                </button>
+
+                <a href="{% url 'dashboard' %}?workspace={{ workspace.id }}"
+                   class="px-3 sm:px-5 py-1.5 sm:py-2.5 border-2 border-black bg-white hover:bg-black hover:text-white transition text-xs font-black uppercase tracking-wider flex items-center gap-1.5 sm:gap-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                    <span>Voltar<span class="hidden sm:inline"> ao Painel</span></span>
+                </a>
+            </div>
         </div>
     </header>
 
     <main class="max-w-4xl mx-auto p-3 sm:p-6 lg:p-8">
 
         <!-- Cabeçalho de Contexto Neobrutalista -->
-        <div class="border-2 sm:border-4 border-black bg-[#FFE600] p-4 sm:p-6 mb-6 sm:mb-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div class="border-2 sm:border-4 border-black bg-[#FFE600] text-black p-4 sm:p-6 mb-6 sm:mb-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-                <span class="text-[9px] sm:text-[10px] font-black uppercase tracking-widest border border-black px-2 py-0.5 bg-white mb-2 inline-block">
+                <span class="text-[9px] sm:text-[10px] font-black uppercase tracking-widest border border-black px-2 py-0.5 bg-white text-black mb-2 inline-block">
                     Espaço Atual
                 </span>
                 <h1 class="text-xl sm:text-2xl font-black uppercase tracking-tight">{{ workspace.name }}</h1>
@@ -58,7 +154,7 @@
                 <h3 class="text-xs font-black uppercase tracking-widest flex items-center gap-2">
                     <i data-lucide="tag" class="w-4 h-4"></i> Categorias Ativas
                 </h3>
-                <span class="text-[10px] font-bold uppercase border border-black px-2 py-0.5 bg-white">
+                <span class="text-[10px] font-bold uppercase border border-black px-2 py-0.5 bg-white text-black">
                     {{ categories|length }} Registadas
                 </span>
             </div>
@@ -92,7 +188,7 @@
 
                         <div class="flex items-center gap-2">
                             <a href="{% url 'edit_category' cat.pk %}"
-                               class="p-1.5 border border-black bg-[#F6F6F2] hover:bg-[#FFE600] transition"
+                               class="p-1.5 border border-black bg-[#F6F6F2] hover:bg-[#FFE600] hover:text-black transition"
                                title="Editar Categoria">
                                 <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
                             </a>
@@ -143,11 +239,11 @@
                                 {% endif %}
                             </td>
                             <td class="p-4 border-r-2 border-black text-center font-mono text-xs font-bold">
-                                <span class="border border-black px-2 py-0.5 bg-stone-100">{{ cat.transactions_count }}</span>
+                                <span class="border border-black px-2 py-0.5 bg-stone-100 text-black">{{ cat.transactions_count }}</span>
                             </td>
                             <td class="p-4 text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    <a href="{% url 'edit_category' cat.pk %}" class="p-1.5 border border-black hover:bg-[#FFE600] transition" title="Editar nome/tipo">
+                                    <a href="{% url 'edit_category' cat.pk %}" class="p-1.5 border border-black hover:bg-[#FFE600] hover:text-black transition" title="Editar nome/tipo">
                                         <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
                                     </a>
                                     <form method="post" action="{% url 'delete_category' cat.pk %}"
@@ -185,27 +281,70 @@
                 <input type="hidden" name="create_category" value="1">
                 <div>
                     <label class="block text-[11px] font-black uppercase tracking-wider mb-1">Nome da Categoria</label>
-                    <input type="text" name="name" required placeholder="Ex: Manutenção, Produtos..." class="w-full border-2 border-black p-2.5 text-sm outline-none focus:bg-[#FFE600] font-bold uppercase">
+                    <input type="text" name="name" required placeholder="Ex: Manutenção, Produtos..." class="w-full border-2 border-black p-2.5 text-sm outline-none focus:bg-[#FFE600] focus:text-black font-bold uppercase">
                 </div>
                 <div>
                     <label class="block text-[11px] font-black uppercase tracking-wider mb-1">Tipo de Lançamento</label>
                     <select name="category_type" class="w-full border-2 border-black p-2.5 text-sm outline-none bg-white font-bold">
-                        <option value="INCOME">Receita (+)</option>
-                        <option value="EXPENSE">Despesa (-)</option>
+                        <option class="text-black bg-white" value="INCOME">Receita (+)</option>
+                        <option class="text-black bg-white" value="EXPENSE">Despesa (-)</option>
                     </select>
                 </div>
                 <div class="flex gap-3 pt-4 border-t-2 border-black">
                     <button type="button" onclick="document.getElementById('modalAddCategory').classList.add('hidden')"
-                            class="w-1/2 py-2.5 sm:py-3 border-2 border-black text-xs font-black uppercase hover:bg-neutral-100">
+                            class="w-1/2 py-2.5 sm:py-3 border-2 border-black text-xs font-black uppercase hover:bg-neutral-100 dark:hover:bg-neutral-800">
                         Cancelar
                     </button>
-                    <button type="submit" class="w-1/2 py-2.5 sm:py-3 border-2 border-black bg-[#FFE600] hover:bg-black hover:text-white transition text-xs font-black uppercase">
+                    <button type="submit" class="w-1/2 py-2.5 sm:py-3 border-2 border-black bg-[#FFE600] text-black hover:bg-black hover:text-white transition text-xs font-black uppercase">
                         Criar
                     </button>
                 </div>
             </form>
         </div>
     </div>
+
+    <!-- Alternador com Sincronização Global -->
+    <script>
+        function applyCategoriesTheme(isDark) {
+            const metaTheme = document.getElementById('themeColorMeta');
+            const themeIcon = document.getElementById('themeIconCategories');
+
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                if (metaTheme) metaTheme.setAttribute('content', '#121212');
+                if (themeIcon) themeIcon.setAttribute('data-lucide', 'sun');
+            } else {
+                document.body.classList.remove('dark-mode');
+                if (metaTheme) metaTheme.setAttribute('content', '#FFE600');
+                if (themeIcon) themeIcon.setAttribute('data-lucide', 'moon');
+            }
+
+            lucide.createIcons();
+        }
+
+        function toggleDarkModeCategories() {
+            const isCurrentlyDark = document.body.classList.contains('dark-mode');
+            const nextModeIsDark = !isCurrentlyDark;
+            localStorage.setItem('fin_theme_mode', nextModeIsDark ? 'dark' : 'light');
+            applyCategoriesTheme(nextModeIsDark);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('fin_theme_mode');
+            applyCategoriesTheme(savedTheme === 'dark');
+        });
+    </script>
+
+    <!-- Registro do Service Worker (PWA) -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((reg) => console.log('FIN. PWA ativo com escopo:', reg.scope))
+                    .catch((err) => console.error('Falha ao registrar Service Worker:', err));
+            });
+        }
+    </script>
 
     <script>
         lucide.createIcons();

@@ -8,7 +8,7 @@
 
     <!-- Configurações PWA e Ícones Neobrutalistas -->
     <link rel="manifest" href="{% static 'manifest.json' %}">
-    <meta name="theme-color" content="#FFE600">
+    <meta id="themeColorMeta" name="theme-color" content="#FFE600">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -23,8 +23,87 @@
         body {
             font-family: 'Space Grotesk', sans-serif;
             overflow-x: hidden;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        /* Estilos do Modo Escuro Neobrutalista */
+        body.dark-mode {
+            background-color: #121212 !important;
+            color: #FFFFFF !important;
+        }
+
+        /* Inversão e contraste de componentes no Dark Mode */
+        body.dark-mode header,
+        body.dark-mode .bg-white {
+            background-color: #1E1E1E !important;
+            color: #FFFFFF !important;
+        }
+
+        body.dark-mode .bg-\[\#F6F6F2\],
+        body.dark-mode .bg-\[\#FAFAFA\],
+        body.dark-mode .bg-stone-100 {
+            background-color: #282828 !important;
+            color: #FFFFFF !important;
+        }
+
+        /* Preservação das bordas sólidas com alto contraste */
+        body.dark-mode .border-black {
+            border-color: #FFFFFF !important;
+        }
+
+        body.dark-mode .divide-black > :not([hidden]) ~ :not([hidden]) {
+            border-color: #FFFFFF !important;
+        }
+
+        /* Sombras duras no modo escuro */
+        body.dark-mode .shadow-\[4px_4px_0px_0px_rgba\(0\,0\,0\,1\)\],
+        body.dark-mode .shadow-\[2px_2px_0px_0px_rgba\(0\,0\,0\,1\)\],
+        body.dark-mode .shadow-\[1px_1px_0px_0px_rgba\(0\,0\,0\,1\)\],
+        body.dark-mode .shadow-\[6px_6px_0px_0px_rgba\(0\,0\,0\,1\)\],
+        body.dark-mode .shadow-\[8px_8px_0px_0px_rgba\(0\,0\,0\,1\)\],
+        body.dark-mode .shadow-\[10px_10px_0px_0px_rgba\(0\,0\,0\,1\)\] {
+            box-shadow: 4px 4px 0px 0px rgba(255, 255, 255, 0.9) !important;
+        }
+
+        /* Textos e inputs ajustados no modo escuro */
+        body.dark-mode input,
+        body.dark-mode select,
+        body.dark-mode textarea {
+            background-color: #1E1E1E !important;
+            color: #FFFFFF !important;
+            border-color: #FFFFFF !important;
+        }
+
+        body.dark-mode input:focus,
+        body.dark-mode select:focus,
+        body.dark-mode textarea:focus {
+            background-color: #2C2C2C !important;
+        }
+
+        body.dark-mode .text-neutral-500,
+        body.dark-mode .text-neutral-600,
+        body.dark-mode .text-neutral-700 {
+            color: #A3A3A3 !important;
+        }
+
+        body.dark-mode .text-neutral-400 {
+            color: #737373 !important;
+        }
+
+        body.dark-mode tr.hover\:bg-neutral-50:hover,
+        body.dark-mode div.hover\:bg-neutral-50:hover {
+            background-color: #2D2D2D !important;
         }
     </style>
+
+    <!-- Script Inline para evitar FOUC (piscar tela ao carregar salvo em dark) -->
+    <script>
+        (function() {
+            if (localStorage.getItem('fin_theme_mode') === 'dark') {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+    </script>
 </head>
 <body class="bg-[#F6F6F2] text-black min-h-screen">
 
@@ -35,15 +114,23 @@
             <!-- Logo -->
             <div class="p-3 sm:p-4 sm:px-8 border-r-2 border-black flex items-center gap-2 sm:gap-3">
                 <span class="text-2xl sm:text-3xl font-black tracking-tighter uppercase">FIN.</span>
-                <span class="text-[9px] sm:text-xs font-black uppercase tracking-widest border border-black px-1.5 py-0.5 bg-[#FFE600]">
+                <span class="text-[9px] sm:text-xs font-black uppercase tracking-widest border border-black px-1.5 py-0.5 bg-[#FFE600] text-black">
                     FINANCE
                 </span>
             </div>
 
             <!-- Controles do Utilizador -->
             <div class="flex items-stretch border-l-2 border-black">
+
+                <!-- Botão Alternar Tema Claro / Escuro -->
+                <button type="button" onclick="toggleDarkMode()"
+                        class="px-3 sm:px-4 flex items-center justify-center border-r-2 border-black bg-white hover:bg-[#FFE600] hover:text-black transition"
+                        title="Alternar Modo Noturno / Claro">
+                    <i id="themeIcon" data-lucide="moon" class="w-4 h-4"></i>
+                </button>
+
                 <a href="{% url 'profile' %}"
-                   class="px-4 sm:px-6 flex items-center gap-2 border-r-2 border-black bg-white hover:bg-[#FFE600] transition text-xs font-black uppercase tracking-wider"
+                   class="px-4 sm:px-6 flex items-center gap-2 border-r-2 border-black bg-white hover:bg-[#FFE600] hover:text-black transition text-xs font-black uppercase tracking-wider"
                    title="Meu Perfil">
                     <i data-lucide="user" class="w-4 h-4"></i>
                     <span class="hidden md:inline">{{ request.user.first_name|default:request.user.username }}</span>
@@ -87,7 +174,7 @@
                     </div>
 
                     <button onclick="document.getElementById('modalWorkspace').classList.remove('hidden')"
-                            class="px-3 border-2 border-black bg-[#FFE600] hover:bg-black hover:text-white transition flex items-center justify-center"
+                            class="px-3 border-2 border-black bg-[#FFE600] text-black hover:bg-black hover:text-white transition flex items-center justify-center"
                             title="Criar Novo Espaço">
                         <i data-lucide="plus" class="w-4 h-4 stroke-[3]"></i>
                     </button>
@@ -102,15 +189,15 @@
                        {% if ws.id == current_workspace.id %}
                             bg-black text-white
                        {% else %}
-                            bg-white text-black hover:bg-[#FFE600]
+                            bg-white text-black hover:bg-[#FFE600] hover:text-black
                        {% endif %}">
-                        <span class="w-2 h-2 shrink-0 {% if ws.id == current_workspace.id %}bg-[#FF4A22]{% else %}bg-black{% endif %}"></span>
+                        <span class="w-2 h-2 shrink-0 {% if ws.id == current_workspace.id %}bg-[#FF4A22]{% else %}bg-current{% endif %}"></span>
                         {{ ws.name }}
                     </a>
                 {% endfor %}
 
                 <button onclick="document.getElementById('modalWorkspace').classList.remove('hidden')"
-                        class="px-4 py-4 bg-stone-100 hover:bg-[#FFE600] text-black text-xs font-black uppercase tracking-wider transition flex items-center gap-1.5 shrink-0"
+                        class="px-4 py-4 bg-stone-100 hover:bg-[#FFE600] hover:text-black text-xs font-black uppercase tracking-wider transition flex items-center gap-1.5 shrink-0"
                         title="Cadastrar novo negócio">
                     <i data-lucide="plus" class="w-3.5 h-3.5 stroke-[3]"></i> Espaço
                 </button>
@@ -120,13 +207,13 @@
             <div class="flex flex-col sm:flex-row divide-y-2 sm:divide-y-0 sm:divide-x-2 divide-black">
                 <div class="grid grid-cols-2 divide-x-2 divide-black flex-1">
                     <button onclick="document.getElementById('modalRecurrings').classList.remove('hidden')"
-                            class="px-3 sm:px-5 py-3 sm:py-4 bg-white hover:bg-[#FFE600] transition text-[11px] sm:text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5"
+                            class="px-3 sm:px-5 py-3 sm:py-4 bg-white hover:bg-[#FFE600] hover:text-black transition text-[11px] sm:text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5"
                             title="Gerenciar Contas Fixas e Assinaturas">
                         <i data-lucide="repeat" class="w-3.5 h-3.5"></i> Assinaturas
                     </button>
 
                     <a href="{% url 'manage_categories' %}?workspace={{ current_workspace.id }}"
-                       class="px-3 sm:px-5 py-3 sm:py-4 bg-white hover:bg-[#FFE600] transition text-[11px] sm:text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5"
+                       class="px-3 sm:px-5 py-3 sm:py-4 bg-white hover:bg-[#FFE600] hover:text-black transition text-[11px] sm:text-xs font-black uppercase tracking-wider flex items-center justify-center gap-1.5"
                        title="Gerenciar categorias">
                         <i data-lucide="settings-2" class="w-3.5 h-3.5"></i> Categorias
                     </a>
@@ -178,7 +265,7 @@
             <div class="p-4 sm:p-6">
                 <div class="flex justify-between items-start mb-3 sm:mb-4">
                     <span class="text-xs font-black uppercase tracking-widest text-neutral-500">Receitas Realizadas</span>
-                    <span class="border border-black p-1 bg-[#F6F6F2]"><i data-lucide="arrow-up-right" class="w-4 h-4 text-black"></i></span>
+                    <span class="border border-black p-1 bg-[#F6F6F2]"><i data-lucide="arrow-up-right" class="w-4 h-4 text-emerald-500"></i></span>
                 </div>
                 <p class="text-2xl sm:text-4xl font-black tracking-tight">R$ {{ total_income|floatformat:2 }}</p>
                 <div class="mt-3 sm:mt-4 text-[10px] font-bold uppercase tracking-widest text-neutral-400">
@@ -197,7 +284,7 @@
                 </div>
             </div>
 
-            <div class="p-4 sm:p-6 {% if balance >= 0 %}bg-[#FFE600]{% else %}bg-[#FF4A22] text-white{% endif %}">
+            <div class="p-4 sm:p-6 {% if balance >= 0 %}bg-[#FFE600] text-black{% else %}bg-[#FF4A22] text-white{% endif %}">
                 <div class="flex justify-between items-start mb-3 sm:mb-4">
                     <span class="text-xs font-black uppercase tracking-widest {% if balance >= 0 %}text-black{% else %}text-white{% endif %}">Saldo Consolidado</span>
                     <span class="border border-black p-1 bg-white text-black"><i data-lucide="wallet" class="w-4 h-4"></i></span>
@@ -211,26 +298,26 @@
 
         <!-- Linha de Previsão: Contas a Receber e Contas a Pagar (Pendentes) -->
         <div class="grid grid-cols-1 md:grid-cols-2 border-2 border-black bg-white divide-y-2 md:divide-y-0 md:divide-x-2 divide-black mb-6 sm:mb-8">
-            <div class="p-3 sm:p-4 bg-emerald-50 flex items-center justify-between">
+            <div class="p-3 sm:p-4 bg-emerald-500/10 flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <span class="p-2 border-2 border-black bg-white text-emerald-600">
                         <i data-lucide="clock" class="w-4 h-4"></i>
                     </span>
                     <div>
-                        <span class="text-[10px] font-black uppercase tracking-wider text-emerald-800 block">Previsão: A Receber</span>
-                        <span class="text-base sm:text-lg font-black text-black font-mono">+ R$ {{ pending_income|floatformat:2 }}</span>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-400 block">Previsão: A Receber</span>
+                        <span class="text-base sm:text-lg font-black font-mono">+ R$ {{ pending_income|floatformat:2 }}</span>
                     </div>
                 </div>
                 <span class="text-[10px] font-bold uppercase border border-black px-2 py-0.5 bg-white text-neutral-600">Pendente</span>
             </div>
 
-            <div class="p-3 sm:p-4 bg-orange-50 flex items-center justify-between">
+            <div class="p-3 sm:p-4 bg-rose-500/10 flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <span class="p-2 border-2 border-black bg-white text-[#FF4A22]">
                         <i data-lucide="alert-circle" class="w-4 h-4"></i>
                     </span>
                     <div>
-                        <span class="text-[10px] font-black uppercase tracking-wider text-amber-900 block">Previsão: A Pagar</span>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-amber-900 dark:text-rose-400 block">Previsão: A Pagar</span>
                         <span class="text-base sm:text-lg font-black text-[#FF4A22] font-mono">- R$ {{ pending_expense|floatformat:2 }}</span>
                     </div>
                 </div>
@@ -248,7 +335,7 @@
                     </h3>
                 </div>
                 <button onclick="document.getElementById('modalGoals').classList.remove('hidden')"
-                        class="px-3 py-1 bg-white hover:bg-[#FFE600] border-2 border-black text-[10px] font-black uppercase tracking-wider transition flex items-center gap-1.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                        class="px-3 py-1 bg-white hover:bg-[#FFE600] hover:text-black border-2 border-black text-[10px] font-black uppercase tracking-wider transition flex items-center gap-1.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                     <i data-lucide="sliders" class="w-3.5 h-3.5"></i> Definir Metas
                 </button>
             </div>
@@ -259,7 +346,7 @@
                     <div>
                         <div class="flex justify-between items-start mb-2">
                             <span class="text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
-                                <span class="w-2.5 h-2.5 bg-black inline-block"></span> Meta de Faturamento
+                                <span class="w-2.5 h-2.5 bg-black dark:bg-white inline-block"></span> Meta de Faturamento
                             </span>
                             {% if revenue_percent >= 100 %}
                                 <span class="border border-black px-2 py-0.5 bg-[#FFE600] text-black text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
@@ -277,15 +364,15 @@
                             </div>
 
                             <div class="w-full h-5 border-2 border-black bg-stone-200 relative overflow-hidden">
-                                <div class="h-full border-r-2 border-black {% if revenue_percent >= 100 %}bg-[#FFE600]{% else %}bg-black{% endif %} transition-all duration-500"
+                                <div class="h-full border-r-2 border-black {% if revenue_percent >= 100 %}bg-[#FFE600]{% else %}bg-black dark:bg-white{% endif %} transition-all duration-500"
                                      style="width: {{ revenue_bar_width }}%;"></div>
                             </div>
 
                             <div class="mt-3 text-[11px] font-bold uppercase tracking-wider">
                                 {% if revenue_remaining > 0 %}
-                                    <span class="text-neutral-600">Faltam <span class="font-mono text-black font-black">R$ {{ revenue_remaining|floatformat:2 }}</span> para bater o alvo.</span>
+                                    <span class="text-neutral-600">Faltam <span class="font-mono text-black dark:text-white font-black">R$ {{ revenue_remaining|floatformat:2 }}</span> para bater o alvo.</span>
                                 {% else %}
-                                    <span class="text-black font-black">Superou a meta em <span class="font-mono">+ R$ {{ revenue_remaining|stringformat:"s"|slice:"1:"|default:"0,00" }}</span>! 🔥</span>
+                                    <span class="font-black">Superou a meta em <span class="font-mono text-emerald-500">+ R$ {{ revenue_remaining|stringformat:"s"|slice:"1:"|default:"0,00" }}</span>! 🔥</span>
                                 {% endif %}
                             </div>
                         {% else %}
@@ -328,7 +415,7 @@
 
                             <div class="mt-3 text-[11px] font-bold uppercase tracking-wider">
                                 {% if expense_remaining >= 0 %}
-                                    <span class="text-neutral-600">Margem disponível: <span class="font-mono text-emerald-700 font-black">R$ {{ expense_remaining|floatformat:2 }}</span></span>
+                                    <span class="text-neutral-600">Margem disponível: <span class="font-mono text-emerald-600 font-black">R$ {{ expense_remaining|floatformat:2 }}</span></span>
                                 {% else %}
                                     <span class="text-[#FF4A22] font-black">Orçamento estourado! Reduza custos.</span>
                                 {% endif %}
@@ -407,7 +494,7 @@
                 </div>
                 <div class="flex items-center gap-4 text-xs font-bold font-mono">
                     <span class="flex items-center gap-1.5">
-                        <span class="w-3 h-3 bg-black border border-black inline-block"></span> Receitas
+                        <span class="w-3 h-3 bg-black dark:bg-white border border-black inline-block"></span> Receitas
                     </span>
                     <span class="flex items-center gap-1.5">
                         <span class="w-3 h-3 bg-[#FF4A22] border border-black inline-block"></span> Despesas
@@ -436,13 +523,13 @@
                     <!-- Botão Relatório PDF Neobrutalista -->
                     <a href="{% url 'export_monthly_report_pdf' %}?workspace={{ current_workspace.id }}&year={{ selected_year }}&month={{ selected_month }}"
                        target="_blank"
-                       class="flex items-center gap-1.5 px-3 py-1 bg-[#FFE600] hover:bg-black hover:text-white border-2 border-black text-[10px] font-black uppercase tracking-wider transition shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+                       class="flex items-center gap-1.5 px-3 py-1 bg-[#FFE600] text-black hover:bg-black hover:text-white transition border-2 border-black text-[10px] font-black uppercase tracking-wider shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
                         <i data-lucide="file-text" class="w-3.5 h-3.5 stroke-[2.5]"></i> <span>Relatório PDF</span>
                     </a>
 
                     <!-- Botão Baixar Planilha -->
                     <a href="{% url 'export_transactions_csv' %}?workspace={{ current_workspace.id }}&year={{ selected_year }}&month={{ selected_month }}"
-                       class="flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-[#FFE600] border-2 border-black text-[10px] font-black uppercase tracking-wider transition">
+                       class="flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-[#FFE600] hover:text-black border-2 border-black text-[10px] font-black uppercase tracking-wider transition">
                         <i data-lucide="download" class="w-3.5 h-3.5 stroke-[2.5]"></i> <span class="hidden sm:inline">Baixar </span>Planilha
                     </a>
                 </div>
@@ -459,7 +546,7 @@
                     <input type="text" name="q" value="{{ search_query }}" placeholder="Buscar por descrição ou observações..."
                            class="w-full bg-transparent text-xs outline-none font-bold uppercase placeholder:normal-case placeholder:font-normal">
                     {% if search_query %}
-                        <a href="?workspace={{ current_workspace.id }}&year={{ selected_year }}&month={{ selected_month }}" class="text-neutral-400 hover:text-black">
+                        <a href="?workspace={{ current_workspace.id }}&year={{ selected_year }}&month={{ selected_month }}" class="text-neutral-400 hover:text-black dark:hover:text-white">
                             <i data-lucide="x" class="w-3.5 h-3.5"></i>
                         </a>
                     {% endif %}
@@ -508,7 +595,7 @@
             <!-- 1. VISTA MÓVEL (CARDS): Visível em telemóveis (< 640px) -->
             <div class="block sm:hidden divide-y-2 divide-black">
                 {% for t in transactions %}
-                <div class="p-3.5 bg-white hover:bg-neutral-50 transition flex flex-col gap-2.5 {% if t.status == 'PENDING' %}bg-amber-50/40{% endif %}">
+                <div class="p-3.5 bg-white hover:bg-neutral-50 transition flex flex-col gap-2.5 {% if t.status == 'PENDING' %}border-l-4 border-l-amber-400{% endif %}">
                     <!-- Linha 1: Descrição e Valor Destacado -->
                     <div class="flex justify-between items-start gap-2">
                         <div class="flex-1 min-w-0">
@@ -518,7 +605,7 @@
                             {% endif %}
                         </div>
                         <div class="text-right shrink-0">
-                            <span class="font-mono font-black text-sm {% if t.category.category_type == 'INCOME' %}text-black{% else %}text-[#FF4A22]{% endif %}">
+                            <span class="font-mono font-black text-sm {% if t.category.category_type == 'INCOME' %}text-emerald-500{% else %}text-[#FF4A22]{% endif %}">
                                 {% if t.category.category_type == 'INCOME' %}+{% else %}-{% endif %} R$ {{ t.amount|floatformat:2 }}
                             </span>
                         </div>
@@ -539,7 +626,7 @@
                                     onclick="openReceiptModal('{{ t.receipt.url }}', '{{ t.description|escapejs }}', '{{ t.amount|floatformat:2 }}', '{{ t.transaction_date|date:'d/m/Y' }}')"
                                     class="border border-black px-1.5 py-0.5 bg-[#FFE600] text-black font-mono text-[10px] font-black uppercase flex items-center gap-1 hover:bg-black hover:text-white transition shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
                                     title="Visualizar Comprovativo">
-                                <i data-lucide="paperclip" class="w-3 h-3 stroke-[2.5]"></i> Recibo
+                                <i data-lucide="paperclip" class="w-3.5 h-3.5 stroke-[2.5]"></i> Recibo
                             </button>
                         {% endif %}
 
@@ -571,7 +658,7 @@
                         </form>
 
                         <div class="flex items-center gap-2">
-                            <a href="{% url 'edit_transaction' t.pk %}" class="p-1.5 border border-black bg-[#F6F6F2] hover:bg-[#FFE600]" title="Editar">
+                            <a href="{% url 'edit_transaction' t.pk %}" class="p-1.5 border border-black bg-[#F6F6F2] hover:bg-[#FFE600] hover:text-black" title="Editar">
                                 <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
                             </a>
                             <form method="post" action="{% url 'delete_transaction' t.pk %}" onsubmit="return confirm('Excluir este lançamento permanentemente?');" class="inline">
@@ -607,7 +694,7 @@
                     </thead>
                     <tbody class="divide-y-2 divide-black text-sm">
                         {% for t in transactions %}
-                        <tr class="hover:bg-neutral-50 transition {% if t.status == 'PENDING' %}bg-amber-50/40{% endif %}">
+                        <tr class="hover:bg-neutral-50 transition {% if t.status == 'PENDING' %}border-l-4 border-l-amber-400{% endif %}">
                             <td class="p-4 border-r-2 border-black text-center">
                                 <form method="post" action="{% url 'toggle_transaction_status' t.pk %}" class="inline">
                                     {% csrf_token %}
@@ -636,7 +723,7 @@
                                     {% if t.receipt %}
                                         <button type="button"
                                                 onclick="openReceiptModal('{{ t.receipt.url }}', '{{ t.description|escapejs }}', '{{ t.amount|floatformat:2 }}', '{{ t.transaction_date|date:'d/m/Y' }}')"
-                                                class="p-1 border border-black bg-[#FFE600] hover:bg-black hover:text-white transition shrink-0"
+                                                class="p-1 border border-black bg-[#FFE600] text-black hover:bg-black hover:text-white transition shrink-0"
                                                 title="Visualizar Comprovativo / Fatura">
                                             <i data-lucide="paperclip" class="w-3.5 h-3.5 stroke-[2.5]"></i>
                                         </button>
@@ -659,12 +746,12 @@
                                 {% endif %}
                             </td>
                             <td class="p-4 border-r-2 border-black text-xs font-mono">{{ t.transaction_date|date:"d.m.Y" }}</td>
-                            <td class="p-4 border-r-2 border-black text-right font-mono font-bold {% if t.category.category_type == 'INCOME' %}text-black{% else %}text-[#FF4A22]{% endif %}">
+                            <td class="p-4 border-r-2 border-black text-right font-mono font-bold {% if t.category.category_type == 'INCOME' %}text-emerald-500{% else %}text-[#FF4A22]{% endif %}">
                                 {% if t.category.category_type == 'INCOME' %}+{% else %}-{% endif %} R$ {{ t.amount|floatformat:2 }}
                             </td>
                             <td class="p-4 text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    <a href="{% url 'edit_transaction' t.pk %}" class="p-1.5 border border-black hover:bg-[#FFE600] transition" title="Editar">
+                                    <a href="{% url 'edit_transaction' t.pk %}" class="p-1.5 border border-black hover:bg-[#FFE600] hover:text-black transition" title="Editar">
                                         <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
                                     </a>
                                     <form method="post" action="{% url 'delete_transaction' t.pk %}" onsubmit="return confirm('Excluir este lançamento permanentemente?');" class="inline">
@@ -793,7 +880,7 @@
                             class="w-1/2 py-3 border-2 border-black text-xs font-black uppercase hover:bg-neutral-100">
                         Fechar
                     </button>
-                    <button type="submit" class="w-1/2 py-3 border-2 border-black bg-[#FFE600] hover:bg-black hover:text-white transition text-xs font-black uppercase">
+                    <button type="submit" class="w-1/2 py-3 border-2 border-black bg-[#FFE600] text-black hover:bg-black hover:text-white transition text-xs font-black uppercase">
                         Cadastrar Assinatura
                     </button>
                 </div>
@@ -827,7 +914,7 @@
                             class="w-1/2 py-3 border-2 border-black text-xs font-black uppercase hover:bg-neutral-100">
                         Cancelar
                     </button>
-                    <button type="submit" class="w-1/2 py-3 border-2 border-black bg-[#FFE600] hover:bg-black hover:text-white transition text-xs font-black uppercase">
+                    <button type="submit" class="w-1/2 py-3 border-2 border-black bg-[#FFE600] text-black hover:bg-black hover:text-white transition text-xs font-black uppercase">
                         Criar Espaço
                     </button>
                 </div>
@@ -899,7 +986,7 @@
                             class="w-1/2 py-3 border-2 border-black text-xs font-black uppercase hover:bg-neutral-100">
                         Cancelar
                     </button>
-                    <button type="submit" class="w-1/2 py-3 border-2 border-black bg-[#FFE600] hover:bg-black hover:text-white transition text-xs font-black uppercase">
+                    <button type="submit" class="w-1/2 py-3 border-2 border-black bg-[#FFE600] text-black hover:bg-black hover:text-white transition text-xs font-black uppercase">
                         Confirmar
                     </button>
                 </div>
@@ -945,7 +1032,7 @@
                             class="w-1/2 py-3 border-2 border-black text-xs font-black uppercase hover:bg-neutral-100">
                         Cancelar
                     </button>
-                    <button type="submit" class="w-1/2 py-3 border-2 border-black bg-[#FFE600] hover:bg-black hover:text-white transition text-xs font-black uppercase">
+                    <button type="submit" class="w-1/2 py-3 border-2 border-black bg-[#FFE600] text-black hover:bg-black hover:text-white transition text-xs font-black uppercase">
                         Salvar Metas
                     </button>
                 </div>
@@ -953,14 +1040,14 @@
         </div>
     </div>
 
-    <!-- Modal de Pré-visualização de Comprovativo (Passo 1) -->
+    <!-- Modal de Pré-visualização de Comprovativo -->
     <div id="modalReceiptViewer" onclick="if(event.target === this) closeReceiptModal()" class="hidden fixed inset-0 bg-black/75 flex items-center justify-center p-3 sm:p-6 z-50">
         <div class="bg-white border-2 sm:border-4 border-black max-w-3xl w-full p-4 sm:p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] max-h-[92vh] flex flex-col">
 
             <!-- Cabeçalho do Modal -->
             <div class="flex justify-between items-center pb-3 border-b-2 sm:border-b-4 border-black mb-4">
                 <div class="flex items-center gap-2">
-                    <span class="p-1 border border-black bg-[#FFE600]">
+                    <span class="p-1 border border-black bg-[#FFE600] text-black">
                         <i data-lucide="paperclip" class="w-4 h-4 stroke-[2.5]"></i>
                     </span>
                     <div>
@@ -973,7 +1060,7 @@
 
                 <div class="flex items-center gap-2">
                     <a id="receiptModalExternalLink" href="#" target="_blank"
-                       class="px-2.5 py-1 border-2 border-black bg-stone-100 hover:bg-[#FFE600] text-[10px] font-black uppercase tracking-wider transition flex items-center gap-1">
+                       class="px-2.5 py-1 border-2 border-black bg-stone-100 hover:bg-[#FFE600] hover:text-black text-[10px] font-black uppercase tracking-wider transition flex items-center gap-1">
                         <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Abrir Original
                     </a>
                     <button type="button" onclick="closeReceiptModal()"
@@ -991,10 +1078,10 @@
         </div>
     </div>
 
+    <!-- Scripts de Controle do Modal de Comprovativos -->
     <script>
         lucide.createIcons();
 
-        // Controladores do Modal de Comprovativo
         function openReceiptModal(url, description, amount, date) {
             const modal = document.getElementById('modalReceiptViewer');
             const title = document.getElementById('receiptModalTitle');
@@ -1032,11 +1119,43 @@
             document.getElementById('receiptModalPdf').src = '';
         }
 
-        // Fechar com a tecla ESC
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape') {
                 closeReceiptModal();
             }
+        });
+    </script>
+
+    <!-- Alternador de Tema Escuro com Persistência -->
+    <script>
+        function applyCurrentTheme(isDark) {
+            const metaTheme = document.getElementById('themeColorMeta');
+            const themeIcon = document.getElementById('themeIcon');
+
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                if (metaTheme) metaTheme.setAttribute('content', '#121212');
+                if (themeIcon) themeIcon.setAttribute('data-lucide', 'sun');
+            } else {
+                document.body.classList.remove('dark-mode');
+                if (metaTheme) metaTheme.setAttribute('content', '#FFE600');
+                if (themeIcon) themeIcon.setAttribute('data-lucide', 'moon');
+            }
+
+            lucide.createIcons();
+            updateChartsForTheme(isDark);
+        }
+
+        function toggleDarkMode() {
+            const isCurrentlyDark = document.body.classList.contains('dark-mode');
+            const nextModeIsDark = !isCurrentlyDark;
+            localStorage.setItem('fin_theme_mode', nextModeIsDark ? 'dark' : 'light');
+            applyCurrentTheme(nextModeIsDark);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('fin_theme_mode');
+            applyCurrentTheme(savedTheme === 'dark');
         });
     </script>
 
@@ -1055,205 +1174,224 @@
         }
     </script>
 
-    <!-- Scripts Chart.js: Rosca e Barras -->
+    <!-- Scripts Chart.js: Rosca e Barras com Suporte a Tema Escuro -->
     <script>
         const brutalistColorsExpenses = ['#FFE600', '#FF4A22', '#000000', '#737373', '#00F0FF', '#A3E635'];
         const brutalistColorsIncome = ['#10B981', '#FFE600', '#00F0FF', '#000000', '#6366F1', '#EC4899'];
 
-        // 1. Gráfico de Fontes de Receita
+        let incomeChart = null;
+        let expensesChart = null;
+        let historyBarChart = null;
+
         const incomeLabels = JSON.parse('{{ income_chart_labels_json|escapejs }}');
         const incomeData = JSON.parse('{{ income_chart_data_json|escapejs }}');
-
-        if (incomeData.length > 0) {
-            const ctxInc = document.getElementById('incomeChart').getContext('2d');
-            new Chart(ctxInc, {
-                type: 'doughnut',
-                data: {
-                    labels: incomeLabels,
-                    datasets: [{
-                        data: incomeData,
-                        backgroundColor: brutalistColorsIncome.slice(0, incomeData.length),
-                        borderColor: '#000000',
-                        borderWidth: 2,
-                        hoverOffset: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: '#000000',
-                            titleFont: { family: 'Space Grotesk', weight: 'bold' },
-                            bodyFont: { family: 'Space Grotesk' },
-                            borderColor: '#000000',
-                            borderWidth: 2,
-                            callbacks: {
-                                label: function(context) { return ` R$ ${context.parsed.toFixed(2)}`; }
-                            }
-                        }
-                    },
-                    cutout: '65%'
-                }
-            });
-
-            const legendInc = document.getElementById('incomeChartLegendCustom');
-            const totalInc = incomeData.reduce((a, b) => a + b, 0);
-
-            incomeLabels.forEach((label, idx) => {
-                const val = incomeData[idx];
-                const pct = totalInc > 0 ? ((val / totalInc) * 100).toFixed(1) : 0;
-                const color = brutalistColorsIncome[idx % brutalistColorsIncome.length];
-
-                const item = document.createElement('div');
-                item.className = 'flex justify-between items-center border-2 border-black p-2 bg-[#F6F6F2] font-mono text-xs font-bold';
-                item.innerHTML = `
-                    <div class="flex items-center gap-2 truncate">
-                        <span class="w-3 h-3 border border-black inline-block shrink-0" style="background-color: ${color}"></span>
-                        <span class="font-sans font-bold uppercase text-[10px] truncate">${label}</span>
-                    </div>
-                    <div class="text-right shrink-0">
-                        <span>R$ ${val.toFixed(2)}</span>
-                        <span class="text-neutral-500 text-[10px] ml-1">(${pct}%)</span>
-                    </div>
-                `;
-                legendInc.appendChild(item);
-            });
-        }
-
-        // 2. Gráfico de Destino das Despesas
         const chartLabels = JSON.parse('{{ chart_labels_json|escapejs }}');
         const chartData = JSON.parse('{{ chart_data_json|escapejs }}');
-
-        if (chartData.length > 0) {
-            const ctxExp = document.getElementById('expensesChart').getContext('2d');
-            new Chart(ctxExp, {
-                type: 'doughnut',
-                data: {
-                    labels: chartLabels,
-                    datasets: [{
-                        data: chartData,
-                        backgroundColor: brutalistColorsExpenses.slice(0, chartData.length),
-                        borderColor: '#000000',
-                        borderWidth: 2,
-                        hoverOffset: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: '#000000',
-                            titleFont: { family: 'Space Grotesk', weight: 'bold' },
-                            bodyFont: { family: 'Space Grotesk' },
-                            borderColor: '#000000',
-                            borderWidth: 2,
-                            callbacks: {
-                                label: function(context) { return ` R$ ${context.parsed.toFixed(2)}`; }
-                            }
-                        }
-                    },
-                    cutout: '65%'
-                }
-            });
-
-            const legendExp = document.getElementById('chartLegendCustom');
-            const totalExp = chartData.reduce((a, b) => a + b, 0);
-
-            chartLabels.forEach((label, idx) => {
-                const val = chartData[idx];
-                const pct = totalExp > 0 ? ((val / totalExp) * 100).toFixed(1) : 0;
-                const color = brutalistColorsExpenses[idx % brutalistColorsExpenses.length];
-
-                const item = document.createElement('div');
-                item.className = 'flex justify-between items-center border-2 border-black p-2 bg-[#F6F6F2] font-mono text-xs font-bold';
-                item.innerHTML = `
-                    <div class="flex items-center gap-2 truncate">
-                        <span class="w-3 h-3 border border-black inline-block shrink-0" style="background-color: ${color}"></span>
-                        <span class="font-sans font-bold uppercase text-[10px] truncate">${label}</span>
-                    </div>
-                    <div class="text-right shrink-0">
-                        <span>R$ ${val.toFixed(2)}</span>
-                        <span class="text-neutral-500 text-[10px] ml-1">(${pct}%)</span>
-                    </div>
-                `;
-                legendExp.appendChild(item);
-            });
-        }
-
-        // 3. Gráfico de Histórico Semestral
         const historyLabels = JSON.parse('{{ history_labels_json|escapejs }}');
         const historyIncome = JSON.parse('{{ history_income_data_json|escapejs }}');
         const historyExpense = JSON.parse('{{ history_expense_data_json|escapejs }}');
 
-        const ctxHistory = document.getElementById('historyBarChart').getContext('2d');
-        new Chart(ctxHistory, {
-            type: 'bar',
-            data: {
-                labels: historyLabels,
-                datasets: [
-                    {
-                        label: 'Receitas',
-                        data: historyIncome,
-                        backgroundColor: '#000000',
-                        borderColor: '#000000',
-                        borderWidth: 2,
-                        borderRadius: 0,
-                        barPercentage: 0.7,
-                        categoryPercentage: 0.6
+        function initCharts(isDark) {
+            const borderColor = isDark ? '#FFFFFF' : '#000000';
+            const gridColor = isDark ? '#333333' : '#E5E5E5';
+            const tickColor = isDark ? '#FFFFFF' : '#000000';
+
+            // 1. Gráfico de Fontes de Receita
+            if (incomeData.length > 0) {
+                const ctxInc = document.getElementById('incomeChart').getContext('2d');
+                if (incomeChart) incomeChart.destroy();
+                incomeChart = new Chart(ctxInc, {
+                    type: 'doughnut',
+                    data: {
+                        labels: incomeLabels,
+                        datasets: [{
+                            data: incomeData,
+                            backgroundColor: brutalistColorsIncome.slice(0, incomeData.length),
+                            borderColor: borderColor,
+                            borderWidth: 2,
+                            hoverOffset: 6
+                        }]
                     },
-                    {
-                        label: 'Despesas',
-                        data: historyExpense,
-                        backgroundColor: '#FF4A22',
-                        borderColor: '#000000',
-                        borderWidth: 2,
-                        borderRadius: 0,
-                        barPercentage: 0.7,
-                        categoryPercentage: 0.6
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        grid: { color: '#E5E5E5', lineWidth: 1 },
-                        ticks: {
-                            font: { family: 'Space Grotesk', weight: 'bold', size: 11 },
-                            color: '#000000'
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: isDark ? '#1E1E1E' : '#000000',
+                                titleFont: { family: 'Space Grotesk', weight: 'bold' },
+                                bodyFont: { family: 'Space Grotesk' },
+                                borderColor: borderColor,
+                                borderWidth: 2,
+                                callbacks: {
+                                    label: function(context) { return ` R$ ${context.parsed.toFixed(2)}`; }
+                                }
+                            }
                         },
-                        border: { color: '#000000', width: 2 }
+                        cutout: '65%'
+                    }
+                });
+
+                const legendInc = document.getElementById('incomeChartLegendCustom');
+                legendInc.innerHTML = '';
+                const totalInc = incomeData.reduce((a, b) => a + b, 0);
+
+                incomeLabels.forEach((label, idx) => {
+                    const val = incomeData[idx];
+                    const pct = totalInc > 0 ? ((val / totalInc) * 100).toFixed(1) : 0;
+                    const color = brutalistColorsIncome[idx % brutalistColorsIncome.length];
+
+                    const item = document.createElement('div');
+                    item.className = 'flex justify-between items-center border-2 border-black p-2 bg-[#F6F6F2] font-mono text-xs font-bold';
+                    item.innerHTML = `
+                        <div class="flex items-center gap-2 truncate">
+                            <span class="w-3 h-3 border border-black inline-block shrink-0" style="background-color: ${color}"></span>
+                            <span class="font-sans font-bold uppercase text-[10px] truncate">${label}</span>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <span>R$ ${val.toFixed(2)}</span>
+                            <span class="text-neutral-500 text-[10px] ml-1">(${pct}%)</span>
+                        </div>
+                    `;
+                    legendInc.appendChild(item);
+                });
+            }
+
+            // 2. Gráfico de Destino das Despesas
+            if (chartData.length > 0) {
+                const ctxExp = document.getElementById('expensesChart').getContext('2d');
+                if (expensesChart) expensesChart.destroy();
+                expensesChart = new Chart(ctxExp, {
+                    type: 'doughnut',
+                    data: {
+                        labels: chartLabels,
+                        datasets: [{
+                            data: chartData,
+                            backgroundColor: brutalistColorsExpenses.slice(0, chartData.length),
+                            borderColor: borderColor,
+                            borderWidth: 2,
+                            hoverOffset: 6
+                        }]
                     },
-                    y: {
-                        grid: { color: '#E5E5E5', lineWidth: 1 },
-                        ticks: {
-                            font: { family: 'Space Grotesk', weight: 'bold', size: 11 },
-                            color: '#000000',
-                            callback: function(value) { return 'R$ ' + value; }
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: isDark ? '#1E1E1E' : '#000000',
+                                titleFont: { family: 'Space Grotesk', weight: 'bold' },
+                                bodyFont: { family: 'Space Grotesk' },
+                                borderColor: borderColor,
+                                borderWidth: 2,
+                                callbacks: {
+                                    label: function(context) { return ` R$ ${context.parsed.toFixed(2)}`; }
+                                }
+                            }
                         },
-                        border: { color: '#000000', width: 2 }
+                        cutout: '65%'
                     }
+                });
+
+                const legendExp = document.getElementById('chartLegendCustom');
+                legendExp.innerHTML = '';
+                const totalExp = chartData.reduce((a, b) => a + b, 0);
+
+                chartLabels.forEach((label, idx) => {
+                    const val = chartData[idx];
+                    const pct = totalExp > 0 ? ((val / totalExp) * 100).toFixed(1) : 0;
+                    const color = brutalistColorsExpenses[idx % brutalistColorsExpenses.length];
+
+                    const item = document.createElement('div');
+                    item.className = 'flex justify-between items-center border-2 border-black p-2 bg-[#F6F6F2] font-mono text-xs font-bold';
+                    item.innerHTML = `
+                        <div class="flex items-center gap-2 truncate">
+                            <span class="w-3 h-3 border border-black inline-block shrink-0" style="background-color: ${color}"></span>
+                            <span class="font-sans font-bold uppercase text-[10px] truncate">${label}</span>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <span>R$ ${val.toFixed(2)}</span>
+                            <span class="text-neutral-500 text-[10px] ml-1">(${pct}%)</span>
+                        </div>
+                    `;
+                    legendExp.appendChild(item);
+                });
+            }
+
+            // 3. Gráfico de Histórico Semestral
+            const ctxHistory = document.getElementById('historyBarChart').getContext('2d');
+            if (historyBarChart) historyBarChart.destroy();
+            historyBarChart = new Chart(ctxHistory, {
+                type: 'bar',
+                data: {
+                    labels: historyLabels,
+                    datasets: [
+                        {
+                            label: 'Receitas',
+                            data: historyIncome,
+                            backgroundColor: isDark ? '#FFFFFF' : '#000000',
+                            borderColor: borderColor,
+                            borderWidth: 2,
+                            borderRadius: 0,
+                            barPercentage: 0.7,
+                            categoryPercentage: 0.6
+                        },
+                        {
+                            label: 'Despesas',
+                            data: historyExpense,
+                            backgroundColor: '#FF4A22',
+                            borderColor: borderColor,
+                            borderWidth: 2,
+                            borderRadius: 0,
+                            barPercentage: 0.7,
+                            categoryPercentage: 0.6
+                        }
+                    ]
                 },
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: '#000000',
-                        titleFont: { family: 'Space Grotesk', weight: 'bold' },
-                        bodyFont: { family: 'Space Grotesk' },
-                        borderColor: '#000000',
-                        borderWidth: 2,
-                        callbacks: {
-                            label: function(context) { return ` ${context.dataset.label}: R$ ${context.parsed.y.toFixed(2)}`; }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            grid: { color: gridColor, lineWidth: 1 },
+                            ticks: {
+                                font: { family: 'Space Grotesk', weight: 'bold', size: 11 },
+                                color: tickColor
+                            },
+                            border: { color: borderColor, width: 2 }
+                        },
+                        y: {
+                            grid: { color: gridColor, lineWidth: 1 },
+                            ticks: {
+                                font: { family: 'Space Grotesk', weight: 'bold', size: 11 },
+                                color: tickColor,
+                                callback: function(value) { return 'R$ ' + value; }
+                            },
+                            border: { color: borderColor, width: 2 }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: isDark ? '#1E1E1E' : '#000000',
+                            titleFont: { family: 'Space Grotesk', weight: 'bold' },
+                            bodyFont: { family: 'Space Grotesk' },
+                            borderColor: borderColor,
+                            borderWidth: 2,
+                            callbacks: {
+                                label: function(context) { return ` ${context.dataset.label}: R$ ${context.parsed.y.toFixed(2)}`; }
+                            }
                         }
                     }
                 }
-            }
-        });
+            });
+        }
+
+        function updateChartsForTheme(isDark) {
+            initCharts(isDark);
+        }
+
+        initCharts(localStorage.getItem('fin_theme_mode') === 'dark');
     </script>
 </body>
 </html>

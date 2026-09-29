@@ -8,7 +8,7 @@
 
     <!-- Configurações PWA e Estética Neobrutalista -->
     <link rel="manifest" href="{% static 'manifest.json' %}">
-    <meta name="theme-color" content="#FFE600">
+    <meta id="themeColorMeta" name="theme-color" content="#FFE600">
     <meta name="mobile-web-app-capable" content="yes">
 
     <!-- Suporte Nativo iOS / Safari -->
@@ -24,16 +24,73 @@
         body {
             font-family: 'Space Grotesk', sans-serif;
             overflow-x: hidden;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        /* Regras do Modo Escuro Neobrutalista */
+        body.dark-mode {
+            background-color: #121212 !important;
+            color: #FFFFFF !important;
+        }
+
+        body.dark-mode .bg-white {
+            background-color: #1E1E1E !important;
+            color: #FFFFFF !important;
+        }
+
+        body.dark-mode .border-black {
+            border-color: #FFFFFF !important;
+        }
+
+        body.dark-mode input[type="text"],
+        body.dark-mode input[type="password"] {
+            background-color: #1E1E1E !important;
+            color: #FFFFFF !important;
+            border-color: #FFFFFF !important;
+        }
+
+        body.dark-mode input[type="text"]:focus,
+        body.dark-mode input[type="password"]:focus {
+            background-color: #2D2D2D !important;
+        }
+
+        body.dark-mode .shadow-\[4px_4px_0px_0px_rgba\(0\,0\,0\,1\)\],
+        body.dark-mode .shadow-\[8px_8px_0px_0px_rgba\(0\,0\,0\,1\)\],
+        body.dark-mode .shadow-\[2px_2px_0px_0px_rgba\(0\,0\,0\,1\)\] {
+            box-shadow: 4px 4px 0px 0px rgba(255, 255, 255, 0.9) !important;
         }
     </style>
+
+    <!-- Injeção Imediata do Tema (Evita tela piscar em branco) -->
+    <script>
+        (function() {
+            if (localStorage.getItem('fin_theme_mode') === 'dark') {
+                document.documentElement.classList.add('dark-mode');
+                document.addEventListener('DOMContentLoaded', () => {
+                    document.body.classList.add('dark-mode');
+                    const meta = document.getElementById('themeColorMeta');
+                    if (meta) meta.setAttribute('content', '#121212');
+                    const icon = document.getElementById('themeIconLogin');
+                    if (icon) icon.setAttribute('data-lucide', 'sun');
+                });
+            }
+        })();
+    </script>
 </head>
 <body class="bg-[#F6F6F2] text-black min-h-screen flex items-center justify-center p-3 sm:p-6">
     <div class="w-full max-w-md border-2 sm:border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
 
         <!-- Header do Card -->
-        <div class="p-4 sm:p-6 border-b-2 sm:border-b-4 border-black bg-[#FFE600] flex justify-between items-center">
+        <div class="p-4 sm:p-6 border-b-2 sm:border-b-4 border-black bg-[#FFE600] text-black flex justify-between items-center">
             <span class="text-2xl sm:text-3xl font-black tracking-tighter uppercase">FIN.</span>
-            <span class="text-[10px] sm:text-xs font-black uppercase tracking-widest border-2 border-black px-2 py-0.5 bg-white">ACESSO</span>
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="toggleDarkModeLogin()"
+                        class="p-1 border-2 border-black bg-white text-black hover:bg-black hover:text-white transition flex items-center justify-center shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
+                        title="Alternar Modo Claro / Noturno">
+                    <i id="themeIconLogin" data-lucide="moon" class="w-3.5 h-3.5"></i>
+                </button>
+                <span class="text-[10px] sm:text-xs font-black uppercase tracking-widest border-2 border-black px-2 py-0.5 bg-white text-black">ACESSO</span>
+            </div>
         </div>
 
         <div class="p-4 sm:p-8">
@@ -53,14 +110,21 @@
                 {% csrf_token %}
                 <div>
                     <label class="block text-[11px] sm:text-xs font-black uppercase tracking-widest mb-1">Nome de Usuário</label>
-                    <input type="text" name="username" autofocus required class="w-full border-2 border-black p-2.5 sm:p-3 text-sm outline-none focus:bg-[#FFE600] font-bold transition">
+                    <input type="text" name="username" autofocus required class="w-full border-2 border-black p-2.5 sm:p-3 text-sm outline-none focus:bg-[#FFE600] focus:text-black font-bold transition">
                 </div>
                 <div>
                     <div class="flex justify-between items-center mb-1">
                         <label class="block text-[11px] sm:text-xs font-black uppercase tracking-widest">Senha</label>
                         <a href="{% url 'password_reset_request' %}" class="text-[10px] sm:text-[11px] font-bold uppercase hover:text-[#FF4A22] underline">Esqueci minha senha</a>
                     </div>
-                    <input type="password" name="password" required class="w-full border-2 border-black p-2.5 sm:p-3 text-sm outline-none focus:bg-[#FFE600] font-bold transition">
+                    <div class="relative flex items-center">
+                        <input type="password" id="id_login_password" name="password" required class="w-full border-2 border-black p-2.5 sm:p-3 pr-12 text-sm outline-none focus:bg-[#FFE600] focus:text-black font-bold transition">
+                        <button type="button" onclick="togglePasswordVisibility('id_login_password', 'eyeIconLogin')"
+                                class="absolute right-2 px-2 py-1 text-black dark:text-white hover:opacity-70 transition z-10"
+                                title="Mostrar / Ocultar Senha">
+                            <i id="eyeIconLogin" data-lucide="eye" class="w-4 h-4"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <button type="submit" class="w-full py-3.5 sm:py-4 bg-black text-white hover:bg-[#FFE600] hover:text-black transition border-2 border-black text-xs font-black uppercase tracking-widest shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
@@ -70,12 +134,62 @@
 
             <div class="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t-2 border-black flex justify-between items-center text-xs font-bold uppercase">
                 <span>Sem conta ativa?</span>
-                <a href="{% url 'register' %}" class="bg-[#FFE600] border-2 border-black px-3 py-1.5 hover:bg-black hover:text-white transition shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                <a href="{% url 'register' %}" class="bg-[#FFE600] text-black border-2 border-black px-3 py-1.5 hover:bg-black hover:text-white transition shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                     Criar Conta
                 </a>
             </div>
         </div>
     </div>
+
+    <!-- Script de Visibilidade da Senha (Olhinho) -->
+    <script>
+        function togglePasswordVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.setAttribute('data-lucide', 'eye-off');
+            } else {
+                input.type = 'password';
+                icon.setAttribute('data-lucide', 'eye');
+            }
+            lucide.createIcons();
+        }
+    </script>
+
+    <!-- Alternador com Sincronização Global -->
+    <script>
+        function applyLoginTheme(isDark) {
+            const metaTheme = document.getElementById('themeColorMeta');
+            const themeIcon = document.getElementById('themeIconLogin');
+
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                if (metaTheme) metaTheme.setAttribute('content', '#121212');
+                if (themeIcon) themeIcon.setAttribute('data-lucide', 'sun');
+            } else {
+                document.body.classList.remove('dark-mode');
+                if (metaTheme) metaTheme.setAttribute('content', '#FFE600');
+                if (themeIcon) themeIcon.setAttribute('data-lucide', 'moon');
+            }
+
+            lucide.createIcons();
+        }
+
+        function toggleDarkModeLogin() {
+            const isCurrentlyDark = document.body.classList.contains('dark-mode');
+            const nextModeIsDark = !isCurrentlyDark;
+            localStorage.setItem('fin_theme_mode', nextModeIsDark ? 'dark' : 'light');
+            applyLoginTheme(nextModeIsDark);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('fin_theme_mode');
+            applyLoginTheme(savedTheme === 'dark');
+            lucide.createIcons();
+        });
+    </script>
 
     <!-- Registro do Service Worker (PWA) -->
     <script>
@@ -86,10 +200,6 @@
                     .catch((err) => console.error('Falha ao registrar Service Worker:', err));
             });
         }
-    </script>
-
-    <script>
-        lucide.createIcons();
     </script>
 </body>
 </html>

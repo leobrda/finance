@@ -8,7 +8,7 @@
 
     <!-- Configurações PWA e Estética Neobrutalista -->
     <link rel="manifest" href="{% static 'manifest.json' %}">
-    <meta name="theme-color" content="#FFE600">
+    <meta id="themeColorMeta" name="theme-color" content="#FFE600">
     <meta name="mobile-web-app-capable" content="yes">
 
     <!-- Suporte Nativo iOS / Safari -->
@@ -24,8 +24,10 @@
         body {
             font-family: 'Space Grotesk', sans-serif;
             overflow-x: hidden;
+            transition: background-color 0.2s ease, color 0.2s ease;
         }
-        /* Padronização Neobrutalista para os widgets de formulário do Django */
+
+        /* Padronização Neobrutalista para os widgets de formulário */
         input[type="text"], input[type="email"], input[type="password"] {
             width: 100%;
             border: 2px solid #000;
@@ -39,7 +41,64 @@
         input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus {
             background-color: #FFE600;
         }
+
+        /* Regras do Modo Escuro Neobrutalista */
+        body.dark-mode {
+            background-color: #121212 !important;
+            color: #FFFFFF !important;
+        }
+
+        body.dark-mode header,
+        body.dark-mode .bg-white {
+            background-color: #1E1E1E !important;
+            color: #FFFFFF !important;
+        }
+
+        body.dark-mode .border-black {
+            border-color: #FFFFFF !important;
+        }
+
+        body.dark-mode input[type="text"],
+        body.dark-mode input[type="email"],
+        body.dark-mode input[type="password"] {
+            background-color: #1E1E1E !important;
+            color: #FFFFFF !important;
+            border-color: #FFFFFF !important;
+        }
+
+        body.dark-mode input[type="text"]:focus,
+        body.dark-mode input[type="email"]:focus,
+        body.dark-mode input[type="password"]:focus {
+            background-color: #2D2D2D !important;
+        }
+
+        body.dark-mode .shadow-\[4px_4px_0px_0px_rgba\(0\,0\,0\,1\)\],
+        body.dark-mode .shadow-\[2px_2px_0px_0px_rgba\(0\,0\,0\,1\)\],
+        body.dark-mode .shadow-\[3px_3px_0px_0px_rgba\(0\,0\,0\,1\)\],
+        body.dark-mode .shadow-\[6px_6px_0px_0px_rgba\(0\,0\,0\,1\)\] {
+            box-shadow: 4px 4px 0px 0px rgba(255, 255, 255, 0.9) !important;
+        }
+
+        body.dark-mode .text-neutral-500 {
+            color: #A3A3A3 !important;
+        }
     </style>
+
+    <!-- Injeção Imediata do Tema (sem piscar branco na tela) -->
+    <script>
+        (function() {
+            if (localStorage.getItem('fin_theme_mode') === 'dark') {
+                document.documentElement.classList.add('dark-mode');
+                document.addEventListener('DOMContentLoaded', () => {
+                    document.body.classList.add('dark-mode');
+                    const meta = document.getElementById('themeColorMeta');
+                    if (meta) meta.setAttribute('content', '#121212');
+                    const icon = document.getElementById('themeIconProfile');
+                    if (icon) icon.setAttribute('data-lucide', 'sun');
+                });
+            }
+        })();
+    </script>
 </head>
 <body class="bg-[#F6F6F2] text-black min-h-screen">
 
@@ -48,15 +107,25 @@
         <div class="max-w-7xl mx-auto flex justify-between items-center px-3 sm:px-6 py-2.5 sm:py-3">
             <div class="flex items-center gap-2 sm:gap-3">
                 <a href="{% url 'dashboard' %}" class="text-2xl sm:text-3xl font-black tracking-tighter uppercase">FIN.</a>
-                <span class="text-[9px] sm:text-xs font-black uppercase tracking-widest border border-black px-1.5 py-0.5 bg-[#FFE600]">
+                <span class="text-[9px] sm:text-xs font-black uppercase tracking-widest border border-black px-1.5 py-0.5 bg-[#FFE600] text-black">
                     PERFIL
                 </span>
             </div>
-            <a href="{% url 'dashboard' %}"
-               class="px-3 sm:px-5 py-1.5 sm:py-2.5 border-2 border-black bg-white hover:bg-black hover:text-white transition text-xs font-black uppercase tracking-wider flex items-center gap-1.5 sm:gap-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                <span>Voltar<span class="hidden sm:inline"> ao Dashboard</span></span>
-            </a>
+
+            <div class="flex items-center gap-2 sm:gap-3">
+                <!-- Botão Alternador de Tema Escuro / Claro -->
+                <button type="button" onclick="toggleDarkModeProfile()"
+                        class="p-2 border-2 border-black bg-white hover:bg-[#FFE600] hover:text-black transition flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                        title="Alternar Modo Claro / Noturno">
+                    <i id="themeIconProfile" data-lucide="moon" class="w-4 h-4"></i>
+                </button>
+
+                <a href="{% url 'dashboard' %}"
+                   class="px-3 sm:px-5 py-1.5 sm:py-2.5 border-2 border-black bg-white hover:bg-black hover:text-white transition text-xs font-black uppercase tracking-wider flex items-center gap-1.5 sm:gap-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                    <span>Voltar<span class="hidden sm:inline"> ao Dashboard</span></span>
+                </a>
+            </div>
         </div>
     </header>
 
@@ -65,7 +134,7 @@
         {% if messages %}
             <div class="mb-6 space-y-2">
                 {% for message in messages %}
-                    <div class="border-2 sm:border-4 border-black p-3 bg-emerald-300 font-black text-xs uppercase flex items-center gap-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                    <div class="border-2 sm:border-4 border-black p-3 bg-emerald-300 text-black font-black text-xs uppercase flex items-center gap-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                         <i data-lucide="check-circle-2" class="w-4 h-4 shrink-0"></i>
                         <span>{{ message }}</span>
                     </div>
@@ -101,7 +170,7 @@
                             {% endif %}
                         </div>
                         <div class="pt-2">
-                            <button type="submit" class="w-full py-2.5 sm:py-3 bg-[#FFE600] hover:bg-black hover:text-white border-2 border-black text-xs font-black uppercase tracking-wider transition shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                            <button type="submit" class="w-full py-2.5 sm:py-3 bg-[#FFE600] text-black hover:bg-black hover:text-white border-2 border-black text-xs font-black uppercase tracking-wider transition shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                                 Atualizar Dados
                             </button>
                         </div>
@@ -124,7 +193,7 @@
                         <div>
                             <div class="flex justify-between items-baseline mb-1">
                                 <label class="block text-[11px] sm:text-xs font-black uppercase tracking-wider">Senha Atual</label>
-                                <a href="{% url 'password_reset_request' %}" class="text-[10px] font-bold uppercase text-neutral-500 hover:text-black hover:underline" title="Redefinir sem precisar da senha antiga">
+                                <a href="{% url 'password_reset_request' %}" class="text-[10px] font-bold uppercase text-neutral-500 hover:text-black dark:hover:text-white hover:underline" title="Redefinir sem precisar da senha antiga">
                                     Esqueceu a senha?
                                 </a>
                             </div>
@@ -160,6 +229,38 @@
             </div>
         </div>
     </main>
+
+    <!-- Alternador de Tema Escuro com Sincronização Global -->
+    <script>
+        function applyProfileTheme(isDark) {
+            const metaTheme = document.getElementById('themeColorMeta');
+            const themeIcon = document.getElementById('themeIconProfile');
+
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                if (metaTheme) metaTheme.setAttribute('content', '#121212');
+                if (themeIcon) themeIcon.setAttribute('data-lucide', 'sun');
+            } else {
+                document.body.classList.remove('dark-mode');
+                if (metaTheme) metaTheme.setAttribute('content', '#FFE600');
+                if (themeIcon) themeIcon.setAttribute('data-lucide', 'moon');
+            }
+
+            lucide.createIcons();
+        }
+
+        function toggleDarkModeProfile() {
+            const isCurrentlyDark = document.body.classList.contains('dark-mode');
+            const nextModeIsDark = !isCurrentlyDark;
+            localStorage.setItem('fin_theme_mode', nextModeIsDark ? 'dark' : 'light');
+            applyProfileTheme(nextModeIsDark);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('fin_theme_mode');
+            applyProfileTheme(savedTheme === 'dark');
+        });
+    </script>
 
     <!-- Registro do Service Worker (PWA) -->
     <script>

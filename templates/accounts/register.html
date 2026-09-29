@@ -1,17 +1,81 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>NOVO CADASTRO — FIN. FINANCE</title>
+
+    <!-- Configurações PWA e Estética Neobrutalista -->
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <meta id="themeColorMeta" name="theme-color" content="#FF4A22">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FIN.">
+    <link rel="apple-touch-icon" href="{% static 'icons/icon-192x192.png' %}">
+
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;900&display=swap');
         body {
             font-family: 'Space Grotesk', sans-serif;
             overflow-x: hidden;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        /* Regras do Modo Escuro Neobrutalista */
+        body.dark-mode {
+            background-color: #121212 !important;
+            color: #FFFFFF !important;
+        }
+
+        body.dark-mode .bg-white {
+            background-color: #1E1E1E !important;
+            color: #FFFFFF !important;
+        }
+
+        body.dark-mode .border-black {
+            border-color: #FFFFFF !important;
+        }
+
+        body.dark-mode input[type="text"],
+        body.dark-mode input[type="email"],
+        body.dark-mode input[type="password"] {
+            background-color: #1E1E1E !important;
+            color: #FFFFFF !important;
+            border-color: #FFFFFF !important;
+        }
+
+        body.dark-mode input[type="text"]:focus,
+        body.dark-mode input[type="email"]:focus,
+        body.dark-mode input[type="password"]:focus {
+            background-color: #2D2D2D !important;
+        }
+
+        body.dark-mode .shadow-\[4px_4px_0px_0px_rgba\(0\,0\,0\,1\)\],
+        body.dark-mode .shadow-\[8px_8px_0px_0px_rgba\(0\,0\,0\,1\)\],
+        body.dark-mode .shadow-\[2px_2px_0px_0px_rgba\(0\,0\,0\,1\)\] {
+            box-shadow: 4px 4px 0px 0px rgba(255, 255, 255, 0.9) !important;
         }
     </style>
+
+    <!-- Injeção Imediata do Tema (Evita tela piscar ao carregar) -->
+    <script>
+        (function() {
+            if (localStorage.getItem('fin_theme_mode') === 'dark') {
+                document.documentElement.classList.add('dark-mode');
+                document.addEventListener('DOMContentLoaded', () => {
+                    document.body.classList.add('dark-mode');
+                    const meta = document.getElementById('themeColorMeta');
+                    if (meta) meta.setAttribute('content', '#121212');
+                    const icon = document.getElementById('themeIconRegister');
+                    if (icon) icon.setAttribute('data-lucide', 'sun');
+                });
+            }
+        })();
+    </script>
 </head>
 <body class="bg-[#F6F6F2] text-black min-h-screen flex items-center justify-center p-3 sm:p-6 my-auto">
     <div class="w-full max-w-md border-2 sm:border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] my-4">
@@ -19,7 +83,14 @@
         <!-- Header do Card -->
         <div class="p-4 sm:p-6 border-b-2 sm:border-b-4 border-black bg-[#FF4A22] text-white flex justify-between items-center">
             <span class="text-2xl sm:text-3xl font-black tracking-tighter uppercase">FIN.</span>
-            <span class="text-[10px] sm:text-xs font-black uppercase tracking-widest border-2 border-black px-2 py-0.5 bg-white text-black">CADASTRO</span>
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="toggleDarkModeRegister()"
+                        class="p-1 border-2 border-black bg-white text-black hover:bg-black hover:text-white transition flex items-center justify-center shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
+                        title="Alternar Modo Claro / Noturno">
+                    <i id="themeIconRegister" data-lucide="moon" class="w-3.5 h-3.5"></i>
+                </button>
+                <span class="text-[10px] sm:text-xs font-black uppercase tracking-widest border-2 border-black px-2 py-0.5 bg-white text-black">CADASTRO</span>
+            </div>
         </div>
 
         <div class="p-4 sm:p-8">
@@ -27,23 +98,41 @@
                 {% csrf_token %}
                 <div>
                     <label class="block text-[11px] sm:text-xs font-black uppercase tracking-widest mb-1">Nome</label>
-                    <input type="text" name="first_name" required class="w-full border-2 border-black p-2.5 sm:p-3 text-sm outline-none focus:bg-[#FFE600] font-bold transition">
+                    <input type="text" name="first_name" required class="w-full border-2 border-black p-2.5 sm:p-3 text-sm outline-none focus:bg-[#FFE600] focus:text-black font-bold transition">
                 </div>
                 <div>
                     <label class="block text-[11px] sm:text-xs font-black uppercase tracking-widest mb-1">Nome de Usuário</label>
-                    <input type="text" name="username" required class="w-full border-2 border-black p-2.5 sm:p-3 text-sm outline-none focus:bg-[#FFE600] font-bold transition">
+                    <input type="text" name="username" required class="w-full border-2 border-black p-2.5 sm:p-3 text-sm outline-none focus:bg-[#FFE600] focus:text-black font-bold transition">
                 </div>
                 <div>
                     <label class="block text-[11px] sm:text-xs font-black uppercase tracking-widest mb-1">E-mail</label>
-                    <input type="email" name="email" required class="w-full border-2 border-black p-2.5 sm:p-3 text-sm outline-none focus:bg-[#FFE600] font-bold transition">
+                    <input type="email" name="email" required class="w-full border-2 border-black p-2.5 sm:p-3 text-sm outline-none focus:bg-[#FFE600] focus:text-black font-bold transition">
                 </div>
+
+                <!-- Campo Senha com Olhinho -->
                 <div>
                     <label class="block text-[11px] sm:text-xs font-black uppercase tracking-widest mb-1">Senha</label>
-                    <input type="password" name="password1" required class="w-full border-2 border-black p-2.5 sm:p-3 text-sm outline-none focus:bg-[#FFE600] font-bold transition">
+                    <div class="relative flex items-center">
+                        <input type="password" id="id_password1" name="password1" required class="w-full border-2 border-black p-2.5 sm:p-3 pr-12 text-sm outline-none focus:bg-[#FFE600] focus:text-black font-bold transition">
+                        <button type="button" onclick="togglePasswordVisibility('id_password1', 'eyeIconRegister1')"
+                                class="absolute right-2 px-2 py-1 text-black dark:text-white hover:opacity-70 transition z-10"
+                                title="Mostrar / Ocultar Senha">
+                            <i id="eyeIconRegister1" data-lucide="eye" class="w-4 h-4"></i>
+                        </button>
+                    </div>
                 </div>
+
+                <!-- Campo Confirmar Senha com Olhinho -->
                 <div>
                     <label class="block text-[11px] sm:text-xs font-black uppercase tracking-widest mb-1">Confirmar Senha</label>
-                    <input type="password" name="password2" required class="w-full border-2 border-black p-2.5 sm:p-3 text-sm outline-none focus:bg-[#FFE600] font-bold transition">
+                    <div class="relative flex items-center">
+                        <input type="password" id="id_password2" name="password2" required class="w-full border-2 border-black p-2.5 sm:p-3 pr-12 text-sm outline-none focus:bg-[#FFE600] focus:text-black font-bold transition">
+                        <button type="button" onclick="togglePasswordVisibility('id_password2', 'eyeIconRegister2')"
+                                class="absolute right-2 px-2 py-1 text-black dark:text-white hover:opacity-70 transition z-10"
+                                title="Mostrar / Ocultar Senha">
+                            <i id="eyeIconRegister2" data-lucide="eye" class="w-4 h-4"></i>
+                        </button>
+                    </div>
                 </div>
 
                 {% if form.errors %}
@@ -52,8 +141,11 @@
                     </div>
                 {% endif %}
 
-                <button type="submit" class="w-full py-3 sm:py-4 bg-[#FFE600] hover:bg-black hover:text-white transition border-2 border-black text-xs font-black uppercase tracking-widest mt-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                    Criar Conta e Espaços →
+                <!-- Botão com Cor Forçada Inline para Garantir Legibilidade -->
+                <button type="submit"
+                        style="color: #000000 !important; background-color: #FFE600 !important;"
+                        class="w-full py-3.5 sm:py-4 border-2 border-black text-xs font-black uppercase tracking-widest mt-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition hover:opacity-90">
+                    <span style="color: #000000 !important;">Criar Conta e Espaços →</span>
                 </button>
             </form>
 
@@ -62,5 +154,66 @@
             </div>
         </div>
     </div>
+
+    <!-- Script de Visibilidade da Senha (Olhinho) -->
+    <script>
+        function togglePasswordVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.setAttribute('data-lucide', 'eye-off');
+            } else {
+                input.type = 'password';
+                icon.setAttribute('data-lucide', 'eye');
+            }
+            lucide.createIcons();
+        }
+    </script>
+
+    <!-- Alternador com Sincronização Global -->
+    <script>
+        function applyRegisterTheme(isDark) {
+            const metaTheme = document.getElementById('themeColorMeta');
+            const themeIcon = document.getElementById('themeIconRegister');
+
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                if (metaTheme) metaTheme.setAttribute('content', '#121212');
+                if (themeIcon) themeIcon.setAttribute('data-lucide', 'sun');
+            } else {
+                document.body.classList.remove('dark-mode');
+                if (metaTheme) metaTheme.setAttribute('content', '#FF4A22');
+                if (themeIcon) themeIcon.setAttribute('data-lucide', 'moon');
+            }
+
+            lucide.createIcons();
+        }
+
+        function toggleDarkModeRegister() {
+            const isCurrentlyDark = document.body.classList.contains('dark-mode');
+            const nextModeIsDark = !isCurrentlyDark;
+            localStorage.setItem('fin_theme_mode', nextModeIsDark ? 'dark' : 'light');
+            applyRegisterTheme(nextModeIsDark);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('fin_theme_mode');
+            applyRegisterTheme(savedTheme === 'dark');
+            lucide.createIcons();
+        });
+    </script>
+
+    <!-- Registro do Service Worker (PWA) -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((reg) => console.log('FIN. PWA ativo com escopo:', reg.scope))
+                    .catch((err) => console.error('Falha ao registrar Service Worker:', err));
+            });
+        }
+    </script>
 </body>
 </html>
