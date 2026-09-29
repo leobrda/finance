@@ -47,7 +47,7 @@
             </a>
         </div>
 
-        <form method="post" class="p-4 sm:p-6 space-y-4">
+        <form method="post" enctype="multipart/form-data" class="p-4 sm:p-6 space-y-4">
             {% csrf_token %}
             <div>
                 <label class="block text-[11px] sm:text-xs font-black uppercase tracking-wider mb-1">Descrição</label>
@@ -79,6 +79,28 @@
                     <label class="block text-[11px] sm:text-xs font-black uppercase tracking-wider mb-1">Status</label>
                     {{ form.status }}
                 </div>
+            </div>
+
+            <!-- Campo e Exibição de Comprovante / Fatura -->
+            <div>
+                <label class="block text-[11px] sm:text-xs font-black uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                    <i data-lucide="paperclip" class="w-3.5 h-3.5"></i> Comprovante / Fatura (Foto ou PDF)
+                </label>
+
+                {% if form.instance.receipt %}
+                    <div class="mb-2 p-2.5 border-2 border-black bg-[#F6F6F2] flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 truncate">
+                            <span class="w-2 h-2 bg-emerald-500 inline-block shrink-0"></span>
+                            <span class="text-xs font-bold uppercase truncate">Arquivo anexado</span>
+                        </div>
+                        <a href="{{ form.instance.receipt.url }}" target="_blank"
+                           class="px-2.5 py-1 border-2 border-black bg-[#FFE600] hover:bg-black hover:text-white transition text-[10px] font-black uppercase tracking-wider flex items-center gap-1 shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                            <i data-lucide="external-link" class="w-3 h-3 stroke-[2.5]"></i> Visualizar
+                        </a>
+                    </div>
+                {% endif %}
+
+                {{ form.receipt }}
             </div>
 
             <div>

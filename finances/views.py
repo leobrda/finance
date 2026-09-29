@@ -57,9 +57,9 @@ def dashboard_view(request):
             new_cat.save()
             return redirect(f"{request.path}?workspace={current_workspace.id}&year={selected_year}&month={selected_month}")
 
-    # 3. POST: Transação
+    # 3. POST: Transação (Com suporte a upload de arquivos e fotos)
     if request.method == 'POST' and 'create_transaction' in request.POST and current_workspace:
-        trans_form = TransactionForm(request.POST, workspace=current_workspace)
+        trans_form = TransactionForm(request.POST, request.FILES, workspace=current_workspace)
         if trans_form.is_valid():
             trans = trans_form.save(commit=False)
             trans.workspace = current_workspace
@@ -359,7 +359,7 @@ def edit_transaction_view(request, pk):
     workspace = transaction.workspace
 
     if request.method == 'POST':
-        form = TransactionForm(request.POST, instance=transaction, workspace=workspace)
+        form = TransactionForm(request.POST, request.FILES, instance=transaction, workspace=workspace)
         if form.is_valid():
             form.save()
             return redirect(f"{reverse('dashboard')}?workspace={workspace.id}&year={transaction.transaction_date.year}&month={transaction.transaction_date.month}")

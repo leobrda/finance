@@ -20,7 +20,16 @@ class CategoryForm(forms.ModelForm):
 class TransactionForm(forms.ModelForm):
     class Meta:
         model = Transaction
-        fields = ['description', 'amount', 'transaction_date', 'category', 'payment_method', 'status', 'notes']
+        fields = [
+            'description',
+            'amount',
+            'transaction_date',
+            'category',
+            'payment_method',
+            'status',
+            'notes',
+            'receipt',
+        ]
         widgets = {
             'description': forms.TextInput(attrs={
                 'class': 'w-full border-2 border-black p-2.5 text-sm outline-none focus:bg-[#FFE600] font-bold',
@@ -48,6 +57,11 @@ class TransactionForm(forms.ModelForm):
                 'class': 'w-full border-2 border-black p-2.5 text-sm outline-none focus:bg-[#FFE600]',
                 'rows': 2,
                 'placeholder': 'Observações adicionais...'
+            }),
+            'receipt': forms.FileInput(attrs={
+                'class': 'w-full border-2 border-black p-2 text-xs font-bold bg-white file:mr-3 file:py-1.5 file:px-3 file:border-2 file:border-black file:bg-[#FFE600] file:text-xs file:font-black file:uppercase file:cursor-pointer hover:file:bg-black hover:file:text-white transition',
+                'accept': 'image/*,application/pdf',
+                'capture': 'environment'
             }),
         }
 
@@ -119,6 +133,5 @@ class RecurringExpenseForm(forms.ModelForm):
         if workspace:
             self.fields['category'].queryset = Category.objects.filter(workspace=workspace, category_type='EXPENSE').order_by('name')
             self.fields['category'].empty_label = "Selecione uma Categoria"
-        # Define o valor inicial como marcado
         if 'auto_pay' in self.fields and self.instance.pk is None:
-                self.fields['auto_pay'].initial = True
+            self.fields['auto_pay'].initial = True
