@@ -8,7 +8,7 @@
 
     <!-- Configurações PWA e Estética Neobrutalista -->
     <link rel="manifest" href="{% static 'manifest.json' %}">
-    <meta id="themeColorMeta" name="theme-color" content="#FFE600">
+    <meta id="themeColorMeta" name="theme-color" content="{{ request.user.preferences.accent_primary|default:'#FFE600' }}">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -19,10 +19,40 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;900&display=swap');
+
+        :root {
+            --accent-primary: {{ request.user.preferences.accent_primary|default:'#FFE600' }};
+            --accent-secondary: {{ request.user.preferences.accent_secondary|default:'#FF4A22' }};
+            --bg-page: #F6F6F2;
+        }
+
         body {
             font-family: 'Space Grotesk', sans-serif;
             overflow-x: hidden;
+            background-color: var(--bg-page);
+            color: #000000;
             transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        /* Classes dinâmicas de cores */
+        .theme-primary-bg {
+            background-color: var(--accent-primary) !important;
+            color: #000000 !important;
+        }
+        .theme-primary-text {
+            color: var(--accent-primary) !important;
+        }
+        .theme-secondary-bg {
+            background-color: var(--accent-secondary) !important;
+            color: #FFFFFF !important;
+        }
+        .theme-secondary-text {
+            color: var(--accent-secondary) !important;
+        }
+
+        .neo-hover:hover {
+            background-color: var(--accent-primary) !important;
+            color: #000000 !important;
         }
 
         /* Regras do Modo Escuro Neobrutalista */
@@ -60,6 +90,7 @@
         body.dark-mode input[type="text"]:focus,
         body.dark-mode select:focus {
             background-color: #2D2D2D !important;
+            color: #FFFFFF !important;
         }
 
         body.dark-mode .shadow-\[4px_4px_0px_0px_rgba\(0\,0\,0\,1\)\],
@@ -84,30 +115,33 @@
         }
     </style>
 
-    <!-- Injeção Imediata do Tema (Evita tela piscar ao carregar) -->
+    <!-- Injeção Imediata do Modo Noturno e Paleta Personalizada (Anti-FOUC) -->
     <script>
         (function() {
-            if (localStorage.getItem('fin_theme_mode') === 'dark') {
+            const dbMode = "{{ request.user.preferences.theme_mode|default:'light' }}";
+            const localMode = localStorage.getItem('fin_theme_mode');
+            const isDark = localMode ? (localMode === 'dark') : (dbMode === 'dark');
+
+            if (isDark) {
                 document.documentElement.classList.add('dark-mode');
-                document.addEventListener('DOMContentLoaded', () => {
-                    document.body.classList.add('dark-mode');
-                    const meta = document.getElementById('themeColorMeta');
-                    if (meta) meta.setAttribute('content', '#121212');
-                    const icon = document.getElementById('themeIconCategories');
-                    if (icon) icon.setAttribute('data-lucide', 'sun');
-                });
             }
+
+            const savedPrimary = localStorage.getItem('fin_accent_primary') || "{{ request.user.preferences.accent_primary|default:'' }}";
+            const savedSecondary = localStorage.getItem('fin_accent_secondary') || "{{ request.user.preferences.accent_secondary|default:'' }}";
+
+            if (savedPrimary) document.documentElement.style.setProperty('--accent-primary', savedPrimary);
+            if (savedSecondary) document.documentElement.style.setProperty('--accent-secondary', savedSecondary);
         })();
     </script>
 </head>
-<body class="bg-[#F6F6F2] text-black min-h-screen">
+<body class="min-h-screen">
 
     <!-- Header Neobrutalista Responsivo -->
     <header class="border-b-2 sm:border-b-4 border-black bg-white sticky top-0 z-40">
         <div class="max-w-7xl mx-auto flex justify-between items-center px-3 sm:px-6 py-2.5 sm:py-3">
             <div class="flex items-center gap-2 sm:gap-3">
                 <a href="{% url 'dashboard' %}" class="text-2xl sm:text-3xl font-black tracking-tighter uppercase">FIN.</a>
-                <span class="text-[9px] sm:text-xs font-black uppercase tracking-widest border border-black px-1.5 py-0.5 bg-[#FFE600] text-black">
+                <span class="text-[9px] sm:text-xs font-black uppercase tracking-widest border border-black px-1.5 py-0.5 theme-primary-bg font-mono">
                     CATEGORIAS
                 </span>
             </div>
@@ -115,13 +149,13 @@
             <div class="flex items-center gap-2 sm:gap-3">
                 <!-- Botão Alternador de Tema Escuro / Claro -->
                 <button type="button" onclick="toggleDarkModeCategories()"
-                        class="p-2 border-2 border-black bg-white hover:bg-[#FFE600] hover:text-black transition flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                        class="p-2 border-2 border-black bg-white neo-hover transition flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
                         title="Alternar Modo Claro / Noturno">
                     <i id="themeIconCategories" data-lucide="moon" class="w-4 h-4"></i>
                 </button>
 
                 <a href="{% url 'dashboard' %}?workspace={{ workspace.id }}"
-                   class="px-3 sm:px-5 py-1.5 sm:py-2.5 border-2 border-black bg-white hover:bg-black hover:text-white transition text-xs font-black uppercase tracking-wider flex items-center gap-1.5 sm:gap-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                   class="px-3 sm:px-5 py-1.5 sm:py-2.5 border-2 border-black bg-white neo-hover transition text-xs font-black uppercase tracking-wider flex items-center gap-1.5 sm:gap-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                     <i data-lucide="arrow-left" class="w-4 h-4"></i>
                     <span>Voltar<span class="hidden sm:inline"> ao Painel</span></span>
                 </a>
@@ -132,23 +166,23 @@
     <main class="max-w-4xl mx-auto p-3 sm:p-6 lg:p-8">
 
         <!-- Cabeçalho de Contexto Neobrutalista -->
-        <div class="border-2 sm:border-4 border-black bg-[#FFE600] text-black p-4 sm:p-6 mb-6 sm:mb-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div class="border-2 sm:border-4 border-black theme-primary-bg p-4 sm:p-6 mb-6 sm:mb-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
                 <span class="text-[9px] sm:text-[10px] font-black uppercase tracking-widest border border-black px-2 py-0.5 bg-white text-black mb-2 inline-block">
                     Espaço Atual
                 </span>
-                <h1 class="text-xl sm:text-2xl font-black uppercase tracking-tight">{{ workspace.name }}</h1>
-                <p class="text-[11px] sm:text-xs font-bold text-neutral-800 uppercase mt-0.5">
+                <h1 class="text-xl sm:text-2xl font-black uppercase tracking-tight text-black">{{ workspace.name }}</h1>
+                <p class="text-[11px] sm:text-xs font-bold text-black/80 uppercase mt-0.5">
                     Gerencie ou renomeie as categorias de receitas e despesas deste espaço.
                 </p>
             </div>
             <button onclick="document.getElementById('modalAddCategory').classList.remove('hidden')"
-                    class="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 border-2 border-black bg-black text-white hover:bg-[#FF4A22] transition text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                    class="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 border-2 border-black bg-black text-white hover:theme-secondary-bg transition text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                 <i data-lucide="plus" class="w-4 h-4 stroke-[3]"></i> Nova Categoria
             </button>
         </div>
 
-        <!-- Bloco de Categorias (Dual View: Cards no Telemóvel / Tabela no Desktop) -->
+        <!-- Bloco de Categorias (Dual View: Cards no Mobile / Tabela no Desktop) -->
         <div class="border-2 sm:border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
             <div class="p-3.5 sm:p-4 border-b-2 sm:border-b-4 border-black flex justify-between items-center bg-[#F6F6F2]">
                 <h3 class="text-xs font-black uppercase tracking-widest flex items-center gap-2">
@@ -188,7 +222,7 @@
 
                         <div class="flex items-center gap-2">
                             <a href="{% url 'edit_category' cat.pk %}"
-                               class="p-1.5 border border-black bg-[#F6F6F2] hover:bg-[#FFE600] hover:text-black transition"
+                               class="p-1.5 border border-black bg-[#F6F6F2] neo-hover transition"
                                title="Editar Categoria">
                                 <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
                             </a>
@@ -197,7 +231,7 @@
                                   class="inline">
                                 {% csrf_token %}
                                 <button type="submit"
-                                        class="p-1.5 border border-black bg-[#F6F6F2] hover:bg-[#FF4A22] hover:text-white transition"
+                                        class="p-1.5 border border-black bg-[#F6F6F2] hover:theme-secondary-bg hover:text-white transition"
                                         title="Excluir Categoria">
                                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                                 </button>
@@ -206,7 +240,7 @@
                     </div>
                 </div>
                 {% empty %}
-                <div class="p-6 text-center text-xs uppercase font-bold text-neutral-400">
+                <div class="p-6 text-center text-xs uppercase font-bold text-neutral-500">
                     Nenhuma categoria configurada para este espaço.
                 </div>
                 {% endfor %}
@@ -243,13 +277,13 @@
                             </td>
                             <td class="p-4 text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    <a href="{% url 'edit_category' cat.pk %}" class="p-1.5 border border-black hover:bg-[#FFE600] hover:text-black transition" title="Editar nome/tipo">
+                                    <a href="{% url 'edit_category' cat.pk %}" class="p-1.5 border border-black neo-hover transition" title="Editar nome/tipo">
                                         <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
                                     </a>
                                     <form method="post" action="{% url 'delete_category' cat.pk %}"
                                           onsubmit="return confirm('Tem certeza que deseja excluir a categoria &quot;{{ cat.name }}&quot;? {% if cat.transactions_count > 0 %}Atenção: existem {{ cat.transactions_count }} lançamento(s) vinculados que ficarão sem categoria!{% endif %}');" class="inline">
                                         {% csrf_token %}
-                                        <button type="submit" class="p-1.5 border border-black hover:bg-[#FF4A22] hover:text-white transition" title="Excluir Categoria">
+                                        <button type="submit" class="p-1.5 border border-black hover:theme-secondary-bg hover:text-white transition" title="Excluir Categoria">
                                             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                                         </button>
                                     </form>
@@ -258,7 +292,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="4" class="p-8 text-center text-xs uppercase font-bold text-neutral-400">
+                            <td colspan="4" class="p-8 text-center text-xs uppercase font-bold text-neutral-500">
                                 Nenhuma categoria configurada para este espaço.
                             </td>
                         </tr>
@@ -274,28 +308,31 @@
         <div class="bg-white border-2 sm:border-4 border-black max-w-sm w-full p-4 sm:p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center pb-3 border-b-2 border-black mb-4">
                 <h3 class="text-xs sm:text-sm font-black uppercase tracking-wider">Nova Categoria</h3>
-                <button type="button" onclick="document.getElementById('modalAddCategory').classList.add('hidden')" class="font-black text-xl hover:text-[#FF4A22]">&times;</button>
+                <button type="button" onclick="document.getElementById('modalAddCategory').classList.add('hidden')" class="font-black text-xl hover:theme-secondary-text">&times;</button>
             </div>
             <form method="post" class="space-y-4">
                 {% csrf_token %}
                 <input type="hidden" name="create_category" value="1">
                 <div>
                     <label class="block text-[11px] font-black uppercase tracking-wider mb-1">Nome da Categoria</label>
-                    <input type="text" name="name" required placeholder="Ex: Manutenção, Produtos..." class="w-full border-2 border-black p-2.5 text-sm outline-none focus:bg-[#FFE600] focus:text-black font-bold uppercase">
+                    <input type="text" name="name" required placeholder="Ex: Manutenção, Produtos..."
+                           class="w-full border-2 border-black p-2.5 text-sm outline-none focus:bg-[var(--accent-primary)] focus:text-black font-bold uppercase transition">
                 </div>
                 <div>
                     <label class="block text-[11px] font-black uppercase tracking-wider mb-1">Tipo de Lançamento</label>
-                    <select name="category_type" class="w-full border-2 border-black p-2.5 text-sm outline-none bg-white font-bold">
+                    <select name="category_type" class="w-full border-2 border-black p-2.5 text-sm outline-none bg-white font-bold cursor-pointer">
                         <option class="text-black bg-white" value="INCOME">Receita (+)</option>
                         <option class="text-black bg-white" value="EXPENSE">Despesa (-)</option>
                     </select>
                 </div>
                 <div class="flex gap-3 pt-4 border-t-2 border-black">
                     <button type="button" onclick="document.getElementById('modalAddCategory').classList.add('hidden')"
-                            class="w-1/2 py-2.5 sm:py-3 border-2 border-black text-xs font-black uppercase hover:bg-neutral-100 dark:hover:bg-neutral-800">
+                            class="w-1/2 py-2.5 sm:py-3 border-2 border-black text-xs font-black uppercase neo-hover transition">
                         Cancelar
                     </button>
-                    <button type="submit" class="w-1/2 py-2.5 sm:py-3 border-2 border-black bg-[#FFE600] text-black hover:bg-black hover:text-white transition text-xs font-black uppercase">
+                    <button type="submit"
+                            style="color: #000000 !important;"
+                            class="w-1/2 py-2.5 sm:py-3 border-2 border-black theme-primary-bg hover:opacity-90 transition text-xs font-black uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                         Criar
                     </button>
                 </div>
@@ -303,11 +340,31 @@
         </div>
     </div>
 
-    <!-- Alternador com Sincronização Global -->
+    <!-- Motor de Tema e Sincronização no Backend -->
     <script>
+        function syncThemeWithBackend(isDark) {
+            const primary = getComputedStyle(document.documentElement).getPropertyValue('--accent-primary').trim();
+            const secondary = getComputedStyle(document.documentElement).getPropertyValue('--accent-secondary').trim();
+            const mode = isDark ? 'dark' : 'light';
+
+            fetch("{% url 'update_theme_preferences' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: JSON.stringify({
+                    accent_primary: primary,
+                    accent_secondary: secondary,
+                    theme_mode: mode
+                })
+            }).catch(err => console.error("Erro ao sincronizar tema:", err));
+        }
+
         function applyCategoriesTheme(isDark) {
             const metaTheme = document.getElementById('themeColorMeta');
             const themeIcon = document.getElementById('themeIconCategories');
+            const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--accent-primary').trim() || '#FFE600';
 
             if (isDark) {
                 document.body.classList.add('dark-mode');
@@ -315,7 +372,7 @@
                 if (themeIcon) themeIcon.setAttribute('data-lucide', 'sun');
             } else {
                 document.body.classList.remove('dark-mode');
-                if (metaTheme) metaTheme.setAttribute('content', '#FFE600');
+                if (metaTheme) metaTheme.setAttribute('content', primaryColor);
                 if (themeIcon) themeIcon.setAttribute('data-lucide', 'moon');
             }
 
@@ -327,11 +384,15 @@
             const nextModeIsDark = !isCurrentlyDark;
             localStorage.setItem('fin_theme_mode', nextModeIsDark ? 'dark' : 'light');
             applyCategoriesTheme(nextModeIsDark);
+            syncThemeWithBackend(nextModeIsDark);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('fin_theme_mode');
-            applyCategoriesTheme(savedTheme === 'dark');
+            const dbTheme = "{{ request.user.preferences.theme_mode|default:'light' }}";
+            const initialMode = savedTheme ? (savedTheme === 'dark') : (dbTheme === 'dark');
+            applyCategoriesTheme(initialMode);
+            lucide.createIcons();
         });
     </script>
 
@@ -344,10 +405,6 @@
                     .catch((err) => console.error('Falha ao registrar Service Worker:', err));
             });
         }
-    </script>
-
-    <script>
-        lucide.createIcons();
     </script>
 </body>
 </html>

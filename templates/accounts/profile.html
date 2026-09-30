@@ -8,7 +8,7 @@
 
     <!-- Configurações PWA e Estética Neobrutalista -->
     <link rel="manifest" href="{% static 'manifest.json' %}">
-    <meta id="themeColorMeta" name="theme-color" content="#FFE600">
+    <meta id="themeColorMeta" name="theme-color" content="{{ request.user.preferences.accent_primary|default:'#FFE600' }}">
     <meta name="mobile-web-app-capable" content="yes">
 
     <!-- Suporte Nativo iOS / Safari -->
@@ -21,10 +21,40 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;900&display=swap');
+
+        :root {
+            --accent-primary: {{ request.user.preferences.accent_primary|default:'#FFE600' }};
+            --accent-secondary: {{ request.user.preferences.accent_secondary|default:'#FF4A22' }};
+            --bg-page: #F6F6F2;
+        }
+
         body {
             font-family: 'Space Grotesk', sans-serif;
             overflow-x: hidden;
+            background-color: var(--bg-page);
+            color: #000000;
             transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        /* Classes dinâmicas de cores */
+        .theme-primary-bg {
+            background-color: var(--accent-primary) !important;
+            color: #000000 !important;
+        }
+        .theme-primary-text {
+            color: var(--accent-primary) !important;
+        }
+        .theme-secondary-bg {
+            background-color: var(--accent-secondary) !important;
+            color: #FFFFFF !important;
+        }
+        .theme-secondary-text {
+            color: var(--accent-secondary) !important;
+        }
+
+        .neo-hover:hover {
+            background-color: var(--accent-primary) !important;
+            color: #000000 !important;
         }
 
         /* Padronização Neobrutalista para os widgets de formulário */
@@ -39,7 +69,8 @@
             transition: background-color 0.15s ease-in-out;
         }
         input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus {
-            background-color: #FFE600;
+            background-color: var(--accent-primary) !important;
+            color: #000000 !important;
         }
 
         /* Regras do Modo Escuro Neobrutalista */
@@ -70,6 +101,7 @@
         body.dark-mode input[type="email"]:focus,
         body.dark-mode input[type="password"]:focus {
             background-color: #2D2D2D !important;
+            color: #FFFFFF !important;
         }
 
         body.dark-mode .shadow-\[4px_4px_0px_0px_rgba\(0\,0\,0\,1\)\],
@@ -80,161 +112,229 @@
         }
 
         body.dark-mode .text-neutral-500 {
-            color: #A3A3A3 !important;
+            color: #D4D4D8 !important;
         }
     </style>
 
-    <!-- Injeção Imediata do Tema (sem piscar branco na tela) -->
+    <!-- Injeção Imediata do Modo Noturno e Paleta Personalizada (Anti-FOUC) -->
     <script>
         (function() {
-            if (localStorage.getItem('fin_theme_mode') === 'dark') {
+            const dbMode = "{{ request.user.preferences.theme_mode|default:'light' }}";
+            const localMode = localStorage.getItem('fin_theme_mode');
+            const isDark = localMode ? (localMode === 'dark') : (dbMode === 'dark');
+
+            if (isDark) {
                 document.documentElement.classList.add('dark-mode');
-                document.addEventListener('DOMContentLoaded', () => {
-                    document.body.classList.add('dark-mode');
-                    const meta = document.getElementById('themeColorMeta');
-                    if (meta) meta.setAttribute('content', '#121212');
-                    const icon = document.getElementById('themeIconProfile');
-                    if (icon) icon.setAttribute('data-lucide', 'sun');
-                });
             }
+
+            const savedPrimary = localStorage.getItem('fin_accent_primary') || "{{ request.user.preferences.accent_primary|default:'' }}";
+            const savedSecondary = localStorage.getItem('fin_accent_secondary') || "{{ request.user.preferences.accent_secondary|default:'' }}";
+
+            if (savedPrimary) document.documentElement.style.setProperty('--accent-primary', savedPrimary);
+            if (savedSecondary) document.documentElement.style.setProperty('--accent-secondary', savedSecondary);
         })();
     </script>
 </head>
-<body class="bg-[#F6F6F2] text-black min-h-screen">
+<body class="min-h-screen flex flex-col justify-between">
 
-    <!-- Header Neobrutalista Responsivo -->
-    <header class="border-b-2 sm:border-b-4 border-black bg-white sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto flex justify-between items-center px-3 sm:px-6 py-2.5 sm:py-3">
-            <div class="flex items-center gap-2 sm:gap-3">
-                <a href="{% url 'dashboard' %}" class="text-2xl sm:text-3xl font-black tracking-tighter uppercase">FIN.</a>
-                <span class="text-[9px] sm:text-xs font-black uppercase tracking-widest border border-black px-1.5 py-0.5 bg-[#FFE600] text-black">
-                    PERFIL
-                </span>
-            </div>
+    <div>
+        <!-- Header Neobrutalista Responsivo -->
+        <header class="border-b-2 sm:border-b-4 border-black bg-white sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto flex justify-between items-center px-3 sm:px-6 py-2.5 sm:py-3">
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <a href="{% url 'dashboard' %}" class="text-2xl sm:text-3xl font-black tracking-tighter uppercase">FIN.</a>
+                    <span class="text-[9px] sm:text-xs font-black uppercase tracking-widest border border-black px-1.5 py-0.5 theme-primary-bg font-mono">
+                        PERFIL
+                    </span>
+                </div>
 
-            <div class="flex items-center gap-2 sm:gap-3">
-                <!-- Botão Alternador de Tema Escuro / Claro -->
-                <button type="button" onclick="toggleDarkModeProfile()"
-                        class="p-2 border-2 border-black bg-white hover:bg-[#FFE600] hover:text-black transition flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
-                        title="Alternar Modo Claro / Noturno">
-                    <i id="themeIconProfile" data-lucide="moon" class="w-4 h-4"></i>
-                </button>
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <!-- Botão Alternador de Tema Escuro / Claro -->
+                    <button type="button" onclick="toggleDarkModeProfile()"
+                            class="p-2 border-2 border-black bg-white neo-hover transition flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                            title="Alternar Modo Claro / Noturno">
+                        <i id="themeIconProfile" data-lucide="moon" class="w-4 h-4"></i>
+                    </button>
 
-                <a href="{% url 'dashboard' %}"
-                   class="px-3 sm:px-5 py-1.5 sm:py-2.5 border-2 border-black bg-white hover:bg-black hover:text-white transition text-xs font-black uppercase tracking-wider flex items-center gap-1.5 sm:gap-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                    <span>Voltar<span class="hidden sm:inline"> ao Dashboard</span></span>
-                </a>
-            </div>
-        </div>
-    </header>
-
-    <main class="max-w-4xl mx-auto p-3 sm:p-6 lg:p-8">
-        <!-- Notificações -->
-        {% if messages %}
-            <div class="mb-6 space-y-2">
-                {% for message in messages %}
-                    <div class="border-2 sm:border-4 border-black p-3 bg-emerald-300 text-black font-black text-xs uppercase flex items-center gap-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                        <i data-lucide="check-circle-2" class="w-4 h-4 shrink-0"></i>
-                        <span>{{ message }}</span>
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-            <!-- Informações Pessoais -->
-            <div class="border-2 sm:border-4 border-black bg-white p-4 sm:p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between">
-                <div>
-                    <div class="border-b-2 border-black pb-3 mb-4 flex items-center gap-2">
-                        <i data-lucide="user" class="w-4 h-4"></i>
-                        <h2 class="text-xs font-black uppercase tracking-widest">Informações Pessoais</h2>
-                    </div>
-
-                    <form method="post" class="space-y-4">
-                        {% csrf_token %}
-                        <input type="hidden" name="update_profile" value="1">
-                        <div>
-                            <label class="block text-[11px] sm:text-xs font-black uppercase tracking-wider mb-1">Primeiro Nome</label>
-                            {{ profile_form.first_name }}
-                        </div>
-                        <div>
-                            <label class="block text-[11px] sm:text-xs font-black uppercase tracking-wider mb-1">Sobrenome</label>
-                            {{ profile_form.last_name }}
-                        </div>
-                        <div>
-                            <label class="block text-[11px] sm:text-xs font-black uppercase tracking-wider mb-1">E-mail Principal</label>
-                            {{ profile_form.email }}
-                            {% if profile_form.email.errors %}
-                                <span class="text-[10px] text-[#FF4A22] font-bold uppercase mt-1 block">{{ profile_form.email.errors.0 }}</span>
-                            {% endif %}
-                        </div>
-                        <div class="pt-2">
-                            <button type="submit" class="w-full py-2.5 sm:py-3 bg-[#FFE600] text-black hover:bg-black hover:text-white border-2 border-black text-xs font-black uppercase tracking-wider transition shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                                Atualizar Dados
-                            </button>
-                        </div>
-                    </form>
+                    <a href="{% url 'dashboard' %}"
+                       class="px-3 sm:px-5 py-1.5 sm:py-2.5 border-2 border-black bg-white neo-hover transition text-xs font-black uppercase tracking-wider flex items-center gap-1.5 sm:gap-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        <span>Voltar<span class="hidden sm:inline"> ao Dashboard</span></span>
+                    </a>
                 </div>
             </div>
+        </header>
 
-            <!-- Segurança & Troca de Senha -->
-            <div class="border-2 sm:border-4 border-black bg-white p-4 sm:p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between">
-                <div>
-                    <div class="border-b-2 border-black pb-3 mb-4 flex items-center gap-2">
-                        <i data-lucide="shield-check" class="w-4 h-4"></i>
-                        <h2 class="text-xs font-black uppercase tracking-widest">Segurança & Senha</h2>
-                    </div>
+        <main class="max-w-4xl mx-auto p-3 sm:p-6 lg:p-8">
+            <!-- Notificações -->
+            {% if messages %}
+                <div class="mb-6 space-y-2">
+                    {% for message in messages %}
+                        <div class="border-2 sm:border-4 border-black p-3 bg-emerald-300 text-black font-black text-xs uppercase flex items-center gap-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] sm:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 shrink-0"></i>
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
 
-                    <form method="post" class="space-y-4">
-                        {% csrf_token %}
-                        <input type="hidden" name="change_password" value="1">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+                <!-- Informações Pessoais -->
+                <div class="border-2 sm:border-4 border-black bg-white p-4 sm:p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between">
+                    <div>
+                        <div class="border-b-2 border-black pb-3 mb-4 flex items-center gap-2">
+                            <i data-lucide="user" class="w-4 h-4"></i>
+                            <h2 class="text-xs font-black uppercase tracking-widest">Informações Pessoais</h2>
+                        </div>
 
-                        <div>
-                            <div class="flex justify-between items-baseline mb-1">
-                                <label class="block text-[11px] sm:text-xs font-black uppercase tracking-wider">Senha Atual</label>
-                                <a href="{% url 'password_reset_request' %}" class="text-[10px] font-bold uppercase text-neutral-500 hover:text-black dark:hover:text-white hover:underline" title="Redefinir sem precisar da senha antiga">
-                                    Esqueceu a senha?
-                                </a>
+                        <form method="post" class="space-y-4">
+                            {% csrf_token %}
+                            <input type="hidden" name="update_profile" value="1">
+                            <div>
+                                <label class="block text-[11px] sm:text-xs font-black uppercase tracking-wider mb-1">Primeiro Nome</label>
+                                {{ profile_form.first_name }}
                             </div>
-                            {{ password_form.old_password }}
-                            {% if password_form.old_password.errors %}
-                                <span class="text-[10px] text-[#FF4A22] font-bold uppercase mt-1 block">{{ password_form.old_password.errors.0 }}</span>
-                            {% endif %}
+                            <div>
+                                <label class="block text-[11px] sm:text-xs font-black uppercase tracking-wider mb-1">Sobrenome</label>
+                                {{ profile_form.last_name }}
+                            </div>
+                            <div>
+                                <label class="block text-[11px] sm:text-xs font-black uppercase tracking-wider mb-1">E-mail Principal</label>
+                                {{ profile_form.email }}
+                                {% if profile_form.email.errors %}
+                                    <span class="text-[10px] theme-secondary-text font-bold uppercase mt-1 block">{{ profile_form.email.errors.0 }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="pt-2">
+                                <button type="submit"
+                                        style="color: #000000 !important;"
+                                        class="w-full py-2.5 sm:py-3 theme-primary-bg hover:opacity-90 border-2 border-black text-xs font-black uppercase tracking-wider transition shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                                    Atualizar Dados
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Segurança & Troca de Senha -->
+                <div class="border-2 sm:border-4 border-black bg-white p-4 sm:p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between">
+                    <div>
+                        <div class="border-b-2 border-black pb-3 mb-4 flex items-center gap-2">
+                            <i data-lucide="shield-check" class="w-4 h-4"></i>
+                            <h2 class="text-xs font-black uppercase tracking-widest">Segurança & Senha</h2>
                         </div>
 
-                        <div>
-                            <label class="block text-[11px] sm:text-xs font-black uppercase tracking-wider mb-1">Nova Senha</label>
-                            {{ password_form.new_password1 }}
-                            {% if password_form.new_password1.errors %}
-                                <span class="text-[10px] text-[#FF4A22] font-bold uppercase mt-1 block">{{ password_form.new_password1.errors.0 }}</span>
-                            {% endif %}
-                        </div>
+                        <form method="post" class="space-y-4">
+                            {% csrf_token %}
+                            <input type="hidden" name="change_password" value="1">
 
-                        <div>
-                            <label class="block text-[11px] sm:text-xs font-black uppercase tracking-wider mb-1">Confirmar Nova Senha</label>
-                            {{ password_form.new_password2 }}
-                            {% if password_form.new_password2.errors %}
-                                <span class="text-[10px] text-[#FF4A22] font-bold uppercase mt-1 block">{{ password_form.new_password2.errors.0 }}</span>
-                            {% endif %}
-                        </div>
+                            <!-- Senha Atual com Olhinho -->
+                            <div>
+                                <div class="flex justify-between items-baseline mb-1">
+                                    <label class="block text-[11px] sm:text-xs font-black uppercase tracking-wider">Senha Atual</label>
+                                    <a href="{% url 'password_reset_request' %}" class="text-[10px] font-bold uppercase text-neutral-500 hover:text-black dark:hover:text-white hover:underline" title="Redefinir sem precisar da senha antiga">
+                                        Esqueceu a senha?
+                                    </a>
+                                </div>
+                                <div class="relative flex items-center">
+                                    {{ password_form.old_password }}
+                                    <button type="button" onclick="togglePasswordVisibility('{{ password_form.old_password.id_for_label }}', 'eyeIconOld')"
+                                            class="absolute right-2 px-2 py-1 text-black dark:text-white hover:opacity-70 transition z-10"
+                                            title="Mostrar / Ocultar Senha">
+                                        <i id="eyeIconOld" data-lucide="eye" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                                {% if password_form.old_password.errors %}
+                                    <span class="text-[10px] theme-secondary-text font-bold uppercase mt-1 block">{{ password_form.old_password.errors.0 }}</span>
+                                {% endif %}
+                            </div>
 
-                        <div class="pt-2">
-                            <button type="submit" class="w-full py-2.5 sm:py-3 bg-black text-white hover:bg-[#FFE600] hover:text-black border-2 border-black text-xs font-black uppercase tracking-wider transition shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                                Modificar Senha
-                            </button>
-                        </div>
-                    </form>
+                            <!-- Nova Senha com Olhinho -->
+                            <div>
+                                <label class="block text-[11px] sm:text-xs font-black uppercase tracking-wider mb-1">Nova Senha</label>
+                                <div class="relative flex items-center">
+                                    {{ password_form.new_password1 }}
+                                    <button type="button" onclick="togglePasswordVisibility('{{ password_form.new_password1.id_for_label }}', 'eyeIconNew1')"
+                                            class="absolute right-2 px-2 py-1 text-black dark:text-white hover:opacity-70 transition z-10"
+                                            title="Mostrar / Ocultar Senha">
+                                        <i id="eyeIconNew1" data-lucide="eye" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                                {% if password_form.new_password1.errors %}
+                                    <span class="text-[10px] theme-secondary-text font-bold uppercase mt-1 block">{{ password_form.new_password1.errors.0 }}</span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Confirmar Nova Senha com Olhinho -->
+                            <div>
+                                <label class="block text-[11px] sm:text-xs font-black uppercase tracking-wider mb-1">Confirmar Nova Senha</label>
+                                <div class="relative flex items-center">
+                                    {{ password_form.new_password2 }}
+                                    <button type="button" onclick="togglePasswordVisibility('{{ password_form.new_password2.id_for_label }}', 'eyeIconNew2')"
+                                            class="absolute right-2 px-2 py-1 text-black dark:text-white hover:opacity-70 transition z-10"
+                                            title="Mostrar / Ocultar Senha">
+                                        <i id="eyeIconNew2" data-lucide="eye" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                                {% if password_form.new_password2.errors %}
+                                    <span class="text-[10px] theme-secondary-text font-bold uppercase mt-1 block">{{ password_form.new_password2.errors.0 }}</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="pt-2">
+                                <button type="submit" class="w-full py-2.5 sm:py-3 bg-black text-white hover:theme-primary-bg hover:!text-black border-2 border-black text-xs font-black uppercase tracking-wider transition shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                                    Modificar Senha
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
-        </div>
-    </main>
+        </main>
+    </div>
 
-    <!-- Alternador de Tema Escuro com Sincronização Global -->
+    <!-- Script de Visibilidade de Senha (Olhinho) -->
     <script>
+        function togglePasswordVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.setAttribute('data-lucide', 'eye-off');
+            } else {
+                input.type = 'password';
+                icon.setAttribute('data-lucide', 'eye');
+            }
+            lucide.createIcons();
+        }
+    </script>
+
+    <!-- Motor de Tema e Sincronização no Backend -->
+    <script>
+        function syncThemeWithBackend(isDark) {
+            const primary = getComputedStyle(document.documentElement).getPropertyValue('--accent-primary').trim();
+            const secondary = getComputedStyle(document.documentElement).getPropertyValue('--accent-secondary').trim();
+            const mode = isDark ? 'dark' : 'light';
+
+            fetch("{% url 'update_theme_preferences' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: JSON.stringify({
+                    accent_primary: primary,
+                    accent_secondary: secondary,
+                    theme_mode: mode
+                })
+            }).catch(err => console.error("Erro ao sincronizar tema:", err));
+        }
+
         function applyProfileTheme(isDark) {
             const metaTheme = document.getElementById('themeColorMeta');
             const themeIcon = document.getElementById('themeIconProfile');
+            const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--accent-primary').trim() || '#FFE600';
 
             if (isDark) {
                 document.body.classList.add('dark-mode');
@@ -242,7 +342,7 @@
                 if (themeIcon) themeIcon.setAttribute('data-lucide', 'sun');
             } else {
                 document.body.classList.remove('dark-mode');
-                if (metaTheme) metaTheme.setAttribute('content', '#FFE600');
+                if (metaTheme) metaTheme.setAttribute('content', primaryColor);
                 if (themeIcon) themeIcon.setAttribute('data-lucide', 'moon');
             }
 
@@ -254,11 +354,15 @@
             const nextModeIsDark = !isCurrentlyDark;
             localStorage.setItem('fin_theme_mode', nextModeIsDark ? 'dark' : 'light');
             applyProfileTheme(nextModeIsDark);
+            syncThemeWithBackend(nextModeIsDark);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('fin_theme_mode');
-            applyProfileTheme(savedTheme === 'dark');
+            const dbTheme = "{{ request.user.preferences.theme_mode|default:'light' }}";
+            const initialMode = savedTheme ? (savedTheme === 'dark') : (dbTheme === 'dark');
+            applyProfileTheme(initialMode);
+            lucide.createIcons();
         });
     </script>
 
@@ -271,10 +375,6 @@
                     .catch((err) => console.error('Falha ao registrar Service Worker:', err));
             });
         }
-    </script>
-
-    <script>
-        lucide.createIcons();
     </script>
 </body>
 </html>
