@@ -1,15 +1,18 @@
 import resend
+import json
+from django.http import JsonResponse
 from django.conf import settings
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, update_session_auth_hash
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.urls import reverse
-
+from .models import UserPreference
 from .forms import RegisterForm, UserProfileForm, CustomPasswordChangeForm
 from .services import setup_new_user_workspaces
 
@@ -112,3 +115,27 @@ def profile_view(request):
         'profile_form': profile_form,
         'password_form': password_form
     })
+
+
+@login_required
+@require_POST
+def update_theme_preferences(request):
+    try:
+        data = json.loads(request.body)
+        pref, _ = UserPreference.objects.get_or_create(user=request.user)
+
+        if 'accent_primary' in data and data['accent_primary']:
+            pref.accent_primary = data['accent_primary']
+
+        if 'accent_secondary' in data and data['accent_secondary']:
+            pref.accent_secondary = data['accent_secondary']
+
+        if 'theme_mode' in data and data['theme_mode']:
+            pref.theme_mode = data['theme_mode']
+
+        pref.save()
+        return JsonResponse({'status': 'success', 'message': 'Preferências salvas com sucesso!'})
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'JSON inválido.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

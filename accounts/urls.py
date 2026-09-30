@@ -18,4 +18,5 @@ urlpatterns = [
         ),
         name='password_reset_confirm_direct'
     ),
+    path('api/update-theme-preferences/', views.update_theme_preferences, name='update_theme_preferences'),
 ]
