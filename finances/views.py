@@ -32,6 +32,16 @@ def add_months(orig_date, months_to_add):
     return date(new_year, new_month, new_day)
 
 
+def landing_page_view(request):
+    """
+    Landing page pública do produto.
+    Se o usuário já estiver logado, redireciona diretamente ao dashboard.
+    """
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    return render(request, 'finances/landing_page.html')
+
+
 @login_required
 def dashboard_view(request):
     workspaces = Workspace.objects.filter(user=request.user)

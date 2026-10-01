@@ -1,0 +1,440 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FIN. FINANCE — O Controle Financeiro Direto ao Ponto</title>
+
+    <meta name="theme-color" content="#FFE600">
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <link rel="apple-touch-icon" href="{% static 'icons/icon-192x192.png' %}">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;900&display=swap');
+
+        :root {
+            --accent-primary: #FFE600;
+            --accent-secondary: #FF4A22;
+            --bg-page: #F6F6F2;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: var(--bg-page);
+            color: #000000;
+        }
+
+        .neo-box {
+            border: 3px solid #000000;
+            box-shadow: 5px 5px 0px 0px rgba(0, 0, 0, 1);
+        }
+
+        .neo-box-sm {
+            border: 2px solid #000000;
+            box-shadow: 3px 3px 0px 0px rgba(0, 0, 0, 1);
+        }
+
+        .neo-btn {
+            border: 3px solid #000000;
+            box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 1);
+            transition: all 0.1s ease-in-out;
+        }
+
+        .neo-btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px 0px rgba(0, 0, 0, 1);
+        }
+
+        .neo-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 1);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-black selection:text-[#FFE600]">
+
+    <!-- ================= NAVBAR ================= -->
+    <header class="border-b-4 border-black bg-white sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex justify-between items-center">
+
+            <!-- Logo -->
+            <a href="{% url 'landing' %}" class="flex items-center gap-2">
+                <span class="text-3xl font-black tracking-tighter uppercase">FIN.</span>
+                <span class="text-xs font-black uppercase tracking-widest border-2 border-black px-2 py-0.5 bg-[#FFE600] font-mono">
+                    FINANCE
+                </span>
+            </a>
+
+            <!-- Navegação Desktop -->
+            <nav class="hidden md:flex items-center gap-8 font-black uppercase text-xs tracking-wider">
+                <a href="#funcionalidades" class="hover:underline underline-offset-4">Funcionalidades</a>
+                <a href="#diferenciais" class="hover:underline underline-offset-4">Diferenciais</a>
+                <a href="#planos" class="hover:underline underline-offset-4">Planos</a>
+                <a href="#faq" class="hover:underline underline-offset-4">Dúvidas</a>
+            </nav>
+
+            <!-- Ações -->
+            <div class="flex items-center gap-3">
+                <a href="{% url 'login' %}"
+                   class="px-4 py-2 border-2 border-black bg-white hover:bg-stone-100 font-black text-xs uppercase tracking-wider transition">
+                    Entrar
+                </a>
+                <a href="{% url 'register' %}"
+                   class="px-5 py-2.5 neo-btn bg-[#FFE600] font-black text-xs uppercase tracking-wider">
+                    Criar Conta
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- ================= HERO SECTION ================= -->
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+
+                <div class="lg:col-span-7 space-y-6">
+                    <div class="inline-flex items-center gap-2 border-2 border-black bg-white px-3 py-1 neo-box-sm">
+                        <span class="w-2.5 h-2.5 bg-[#FF4A22] border border-black inline-block"></span>
+                        <span class="text-xs font-black uppercase tracking-widest font-mono">Micro-SaaS Financeiro v1.0</span>
+                    </div>
+
+                    <h1 class="text-4xl sm:text-6xl font-black uppercase tracking-tight leading-[1.05]">
+                        Controle financeiro real. <br>
+                        <span class="bg-[#FFE600] border-2 border-black px-2 inline-block neo-box-sm mt-1">Sem planilhas chatas.</span>
+                    </h1>
+
+                    <p class="text-base sm:text-lg font-bold text-neutral-700 uppercase max-w-xl leading-relaxed">
+                        Abandone planilhas confusas e apps lentos cheios de firula. O FIN. reúne fluxo de caixa, parcelamentos futuros, assinaturas recorrentes e workspaces PF/PJ em uma interface rápida e neobrutalista.
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-4">
+                        <a href="{% url 'register' %}"
+                           class="px-8 py-4 neo-btn bg-[#FFE600] text-center font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2">
+                            <span>Começar Gratuitamente</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4 stroke-[3]"></i>
+                        </a>
+
+                        <a href="#funcionalidades"
+                           class="px-6 py-4 border-3 border-black bg-white hover:bg-stone-100 text-center font-black text-sm uppercase tracking-wider transition border-2">
+                            Ver Como Funciona
+                        </a>
+                    </div>
+
+                    <div class="flex items-center gap-6 pt-4 text-xs font-mono font-bold uppercase text-neutral-600">
+                        <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4 stroke-[3] text-emerald-600"></i> Sem cartão no cadastro</span>
+                        <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4 stroke-[3] text-emerald-600"></i> Instale como PWA no celular</span>
+                    </div>
+                </div>
+
+                <!-- Mockup Neobrutalista Visual -->
+                <div class="lg:col-span-5">
+                    <div class="neo-box bg-white p-6 space-y-4">
+                        <div class="flex justify-between items-center border-b-2 border-black pb-3">
+                            <span class="text-xs font-black uppercase tracking-wider font-mono">● Visão Consolidada</span>
+                            <span class="text-[10px] font-mono border border-black px-2 py-0.5 bg-[#FFE600] font-bold">OUTUBRO / 2026</span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="border-2 border-black p-3 bg-stone-50">
+                                <span class="text-[10px] font-bold uppercase text-neutral-500 block">Receitas</span>
+                                <span class="text-xl font-black font-mono text-emerald-600">+ R$ 8.450,00</span>
+                                <span class="text-[9px] font-mono font-bold block mt-1 text-emerald-700">▲ +14% vs mês ant.</span>
+                            </div>
+                            <div class="border-2 border-black p-3 bg-stone-50">
+                                <span class="text-[10px] font-bold uppercase text-neutral-500 block">Despesas</span>
+                                <span class="text-xl font-black font-mono text-[#FF4A22]">- R$ 3.120,00</span>
+                                <span class="text-[9px] font-mono font-bold block mt-1 text-emerald-700">▼ -5% economia</span>
+                            </div>
+                        </div>
+
+                        <div class="border-2 border-black p-4 bg-[#FFE600]">
+                            <span class="text-[10px] font-black uppercase tracking-widest block">Saldo em Caixa</span>
+                            <span class="text-3xl font-black font-mono">R$ 5.330,00</span>
+                        </div>
+
+                        <div class="space-y-2 pt-2">
+                            <span class="text-[10px] font-black uppercase tracking-wider text-neutral-500 block">Lançamentos Recentes</span>
+                            <div class="border-2 border-black p-2 flex justify-between items-center text-xs font-bold uppercase bg-[#F6F6F2]">
+                                <span>Notebook Dell (01/10)</span>
+                                <span class="font-mono text-[#FF4A22]">- R$ 450,00</span>
+                            </div>
+                            <div class="border-2 border-black p-2 flex justify-between items-center text-xs font-bold uppercase bg-[#F6F6F2]">
+                                <span>Contrato Consultoria PJ</span>
+                                <span class="font-mono text-emerald-600">+ R$ 3.200,00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= FUNCIONALIDADES ================= -->
+        <section id="funcionalidades" class="border-t-4 border-black bg-white py-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+
+                <div class="text-center max-w-2xl mx-auto space-y-3">
+                    <span class="text-xs font-black uppercase tracking-widest font-mono border-2 border-black px-2 py-1 bg-[#FFE600]">
+                        Recursos Principais
+                    </span>
+                    <h2 class="text-3xl sm:text-5xl font-black uppercase tracking-tight">Construído para quem tem rotina real</h2>
+                    <p class="text-xs sm:text-sm font-bold text-neutral-600 uppercase">Cada detalhe foi desenhado para economizar seu tempo e dar previsibilidade financeira.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                    <!-- Card 1 -->
+                    <div class="neo-box bg-[#F6F6F2] p-6 space-y-3">
+                        <div class="w-10 h-10 border-2 border-black bg-[#FFE600] flex items-center justify-center">
+                            <i data-lucide="layers" class="w-5 h-5 stroke-[2.5]"></i>
+                        </div>
+                        <h3 class="text-lg font-black uppercase">Parcelamento Automático</h3>
+                        <p class="text-xs font-bold text-neutral-600 uppercase leading-relaxed">
+                            Comprou parcelado no cartão? Escolha o número de parcelas e o sistema provisiona todos os meses futuros automaticamente com compensação exata de centavos.
+                        </p>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div class="neo-box bg-[#F6F6F2] p-6 space-y-3">
+                        <div class="w-10 h-10 border-2 border-black bg-[#FF4A22] text-white flex items-center justify-center">
+                            <i data-lucide="briefcase" class="w-5 h-5 stroke-[2.5]"></i>
+                        </div>
+                        <h3 class="text-lg font-black uppercase">Multi-Workspaces (PF & PJ)</h3>
+                        <p class="text-xs font-bold text-neutral-600 uppercase leading-relaxed">
+                            Separe a conta da empresa do dinheiro pessoal. Alterne de negócio com 1 clique, com categorias, relatórios e metas totalmente isolados.
+                        </p>
+                    </div>
+
+                    <!-- Card 3 -->
+                    <div class="neo-box bg-[#F6F6F2] p-6 space-y-3">
+                        <div class="w-10 h-10 border-2 border-black bg-white flex items-center justify-center">
+                            <i data-lucide="repeat" class="w-5 h-5 stroke-[2.5]"></i>
+                        </div>
+                        <h3 class="text-lg font-black uppercase">Assinaturas com Auto-Baixa</h3>
+                        <p class="text-xs font-bold text-neutral-600 uppercase leading-relaxed">
+                            Netflix, internet, aluguel ou fornecedores. Defina o dia de vencimento e o FIN. agenda e liquida a despesa automaticamente quando a data chegar.
+                        </p>
+                    </div>
+
+                    <!-- Card 4 -->
+                    <div class="neo-box bg-[#F6F6F2] p-6 space-y-3">
+                        <div class="w-10 h-10 border-2 border-black bg-emerald-300 flex items-center justify-center">
+                            <i data-lucide="eye-off" class="w-5 h-5 stroke-[2.5]"></i>
+                        </div>
+                        <h3 class="text-lg font-black uppercase">Modo Privacidade Instantâneo</h3>
+                        <p class="text-xs font-bold text-neutral-600 uppercase leading-relaxed">
+                            Vai abrir o painel em público, no trabalho ou no celular? Aperte o botão de privacidade no cabeçalho e todos os valores ficam desfocados na hora.
+                        </p>
+                    </div>
+
+                    <!-- Card 5 -->
+                    <div class="neo-box bg-[#F6F6F2] p-6 space-y-3">
+                        <div class="w-10 h-10 border-2 border-black bg-sky-300 flex items-center justify-center">
+                            <i data-lucide="file-text" class="w-5 h-5 stroke-[2.5]"></i>
+                        </div>
+                        <h3 class="text-lg font-black uppercase">Exportação PDF & Planilha</h3>
+                        <p class="text-xs font-bold text-neutral-600 uppercase leading-relaxed">
+                            Gere relatórios executivos mensais em PDF estilizados prontos para envio, ou baixe a planilha em CSV para o seu contador.
+                        </p>
+                    </div>
+
+                    <!-- Card 6 -->
+                    <div class="neo-box bg-[#F6F6F2] p-6 space-y-3">
+                        <div class="w-10 h-10 border-2 border-black bg-purple-300 flex items-center justify-center">
+                            <i data-lucide="smartphone" class="w-5 h-5 stroke-[2.5]"></i>
+                        </div>
+                        <h3 class="text-lg font-black uppercase">PWA Instalável</h3>
+                        <p class="text-xs font-bold text-neutral-600 uppercase leading-relaxed">
+                            Funciona no navegador do celular como se fosse um app nativo. Instale no iPhone ou Android com ícone próprio e suporte offline.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TABELA DE PLANOS (MONETIZAÇÃO) ================= -->
+        <section id="planos" class="border-t-4 border-black py-20 bg-[#F6F6F2]">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+
+                <div class="text-center max-w-2xl mx-auto space-y-3">
+                    <span class="text-xs font-black uppercase tracking-widest font-mono border-2 border-black px-2 py-1 bg-[#FF4A22] text-white">
+                        Preços Justos & Transparentes
+                    </span>
+                    <h2 class="text-3xl sm:text-5xl font-black uppercase tracking-tight">Valores que cabem no seu bolso</h2>
+                    <p class="text-xs sm:text-sm font-bold text-neutral-600 uppercase">Sem pegadinhas, sem taxas escondidas e sem anúncios atrapalhando sua visão.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+
+                    <!-- Plano Grátis -->
+                    <div class="neo-box bg-white p-6 sm:p-8 flex flex-col justify-between space-y-6">
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <h3 class="text-xl font-black uppercase">Gratuito</h3>
+                                <span class="text-[10px] font-mono font-bold uppercase border border-black px-2 py-0.5 bg-stone-100">Início</span>
+                            </div>
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-4xl font-black font-mono">R$ 0</span>
+                                <span class="text-xs font-bold uppercase text-neutral-500">/ sempre</span>
+                            </div>
+                            <p class="text-xs font-bold text-neutral-600 uppercase">Ideal para quem quer experimentar e organizar as contas básicas.</p>
+
+                            <ul class="space-y-2.5 pt-4 border-t-2 border-black text-xs font-bold uppercase">
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> 1 Espaço de Gestão</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> Até 30 lançamentos/mês</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> Parcelamento automático</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> Modo Privacidade & Dark Mode</li>
+                            </ul>
+                        </div>
+
+                        <a href="{% url 'register' %}" class="w-full py-3 neo-btn bg-stone-100 text-center font-black text-xs uppercase tracking-wider block">
+                            Criar Conta Grátis
+                        </a>
+                    </div>
+
+                    <!-- Plano Mensal (Destaque) -->
+                    <div class="neo-box bg-[#FFE600] p-6 sm:p-8 flex flex-col justify-between space-y-6 relative -translate-y-2">
+                        <div class="absolute -top-4 right-6 border-2 border-black bg-[#FF4A22] text-white px-3 py-0.5 text-[10px] font-mono font-bold uppercase">
+                            Mais Popular
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <h3 class="text-xl font-black uppercase">Mensal Pro</h3>
+                                <span class="text-[10px] font-mono font-bold uppercase border border-black px-2 py-0.5 bg-white">Sem Fidelidade</span>
+                            </div>
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-4xl font-black font-mono">R$ 9,90</span>
+                                <span class="text-xs font-bold uppercase text-neutral-700">/ mês</span>
+                            </div>
+                            <p class="text-xs font-bold text-neutral-800 uppercase">Menos que um café na padaria para ter controle absoluto do seu dinheiro.</p>
+
+                            <ul class="space-y-2.5 pt-4 border-t-2 border-black text-xs font-bold uppercase">
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 stroke-[3]"></i> <strong>Workspaces Ilimitados</strong> (PF & PJ)</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 stroke-[3]"></i> Lançamentos sem limite</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 stroke-[3]"></i> Relatórios em PDF & Planilhas CSV</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 stroke-[3]"></i> Upload de comprovantes de pagamento</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 stroke-[3]"></i> Métricas MoM e Metas mensais</li>
+                            </ul>
+                        </div>
+
+                        <a href="{% url 'register' %}" class="w-full py-3 neo-btn bg-black text-white hover:bg-stone-800 text-center font-black text-xs uppercase tracking-wider block">
+                            Assinar Mensal
+                        </a>
+                    </div>
+
+                    <!-- Plano Anual -->
+                    <div class="neo-box bg-white p-6 sm:p-8 flex flex-col justify-between space-y-6">
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <h3 class="text-xl font-black uppercase">Anual Economia</h3>
+                                <span class="text-[10px] font-mono font-bold uppercase border border-black px-2 py-0.5 bg-emerald-200">Economize 35%</span>
+                            </div>
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-4xl font-black font-mono">R$ 79,90</span>
+                                <span class="text-xs font-bold uppercase text-neutral-500">/ ano</span>
+                            </div>
+                            <p class="text-xs font-bold text-neutral-600 uppercase">Equivale a apenas <strong>R$ 6,65/mês</strong>. Pague uma vez e use o ano todo.</p>
+
+                            <ul class="space-y-2.5 pt-4 border-t-2 border-black text-xs font-bold uppercase">
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> Tudo do Plano Pro incluso</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> Suporte prioritário via WhatsApp/Email</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> Acesso antecipado a novos recursos</li>
+                            </ul>
+                        </div>
+
+                        <a href="{% url 'register' %}" class="w-full py-3 neo-btn bg-[#FFE600] text-center font-black text-xs uppercase tracking-wider block">
+                            Garantir Plano Anual
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= FAQ SECTION ================= -->
+        <section id="faq" class="border-t-4 border-black bg-white py-20">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+
+                <div class="text-center space-y-2">
+                    <span class="text-xs font-black uppercase tracking-widest font-mono border-2 border-black px-2 py-1 bg-[#FFE600]">
+                        FAQ
+                    </span>
+                    <h2 class="text-3xl sm:text-4xl font-black uppercase tracking-tight">Perguntas Frequentes</h2>
+                </div>
+
+                <div class="space-y-4">
+                    <details class="neo-box bg-[#F6F6F2] p-4 cursor-pointer group">
+                        <summary class="font-black text-sm uppercase flex justify-between items-center list-none">
+                            <span>Preciso cadastrar cartão de crédito para testar?</span>
+                            <i data-lucide="chevron-down" class="w-4 h-4 transition group-open:rotate-180"></i>
+                        </summary>
+                        <p class="mt-3 text-xs font-bold text-neutral-600 uppercase leading-relaxed border-t border-black/20 pt-3">
+                            Não! Você pode criar sua conta gratuita imediatamente usando apenas seu e-mail e uma senha.
+                        </p>
+                    </details>
+
+                    <details class="neo-box bg-[#F6F6F2] p-4 cursor-pointer group">
+                        <summary class="font-black text-sm uppercase flex justify-between items-center list-none">
+                            <span>Como funciona o aplicativo no celular?</span>
+                            <i data-lucide="chevron-down" class="w-4 h-4 transition group-open:rotate-180"></i>
+                        </summary>
+                        <p class="mt-3 text-xs font-bold text-neutral-600 uppercase leading-relaxed border-t border-black/20 pt-3">
+                            O FIN. é um Progressive Web App (PWA). Basta abrir o site no navegador do celular (Safari ou Chrome) e clicar em "Adicionar à Tela de Início". Ele será instalado como um app independente sem ocupar memória.
+                        </p>
+                    </details>
+
+                    <details class="neo-box bg-[#F6F6F2] p-4 cursor-pointer group">
+                        <summary class="font-black text-sm uppercase flex justify-between items-center list-none">
+                            <span>Meus dados financeiros estão seguros?</span>
+                            <i data-lucide="chevron-down" class="w-4 h-4 transition group-open:rotate-180"></i>
+                        </summary>
+                        <p class="mt-3 text-xs font-bold text-neutral-600 uppercase leading-relaxed border-t border-black/20 pt-3">
+                            Sim. Todo o tráfego é criptografado com SSL/HTTPS de ponta a ponta e suas informações são isoladas por usuário e workspace no banco de dados.
+                        </p>
+                    </details>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= CTA FINAL ================= -->
+        <section class="border-t-4 border-black bg-[#FFE600] py-16">
+            <div class="max-w-5xl mx-auto px-4 text-center space-y-6">
+                <h2 class="text-3xl sm:text-5xl font-black uppercase tracking-tight">Pronto para assumir o controle do seu dinheiro?</h2>
+                <p class="text-xs sm:text-sm font-bold uppercase max-w-xl mx-auto text-neutral-800">
+                    Crie sua conta agora mesmo em menos de 1 minuto e comece a lançar suas despesas com clareza total.
+                </p>
+                <div class="pt-2">
+                    <a href="{% url 'register' %}" class="inline-block px-10 py-4 neo-btn bg-black text-white hover:bg-neutral-900 font-black text-sm uppercase tracking-widest">
+                        Começar Agora — 100% Grátis
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ================= FOOTER ================= -->
+    <footer class="border-t-4 border-black bg-white py-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs font-mono font-bold uppercase text-neutral-600">
+            <div class="flex items-center gap-2">
+                <span class="font-black text-base text-black">FIN.</span>
+                <span>© 2026 FIN. FINANCE — Todos os direitos reservados.</span>
+            </div>
+            <div class="flex gap-6">
+                <a href="{% url 'login' %}" class="hover:underline">Entrar</a>
+                <a href="{% url 'register' %}" class="hover:underline">Cadastrar</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
