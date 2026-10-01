@@ -221,6 +221,18 @@ def dashboard_view(request):
     revenue_remaining = Decimal('0.00')
     expense_remaining = Decimal('0.00')
 
+    # Métricas comparativas (Month-over-Month)
+    prev_month_label = ""
+    income_diff_pct = 0.0
+    income_is_up = True
+    income_is_neutral = True
+    expense_diff_pct = 0.0
+    expense_is_up = True
+    expense_is_neutral = True
+    balance_diff_pct = 0.0
+    balance_is_up = True
+    balance_is_neutral = True
+
     month_abbrevs = {
         1: 'Jan', 2: 'Fev', 3: 'Mar', 4: 'Abr', 5: 'Mai', 6: 'Jun',
         7: 'Jul', 8: 'Ago', 9: 'Set', 10: 'Out', 11: 'Nov', 12: 'Dez'
@@ -254,6 +266,38 @@ def dashboard_view(request):
 
         pending_income = base_qs.filter(category__category_type='INCOME', status='PENDING').aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
         pending_expense = base_qs.filter(category__category_type='EXPENSE', status='PENDING').aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
+
+        # --- Cálculo Comparativo Mês a Mês (Month-over-Month) ---
+        prev_month = 12 if selected_month == 1 else selected_month - 1
+        prev_year = selected_year - 1 if selected_month == 1 else selected_year
+        prev_month_label = f"{month_abbrevs[prev_month]}/{str(prev_year)[2:]}"
+
+        prev_qs = Transaction.objects.filter(
+            workspace=current_workspace,
+            transaction_date__year=prev_year,
+            transaction_date__month=prev_month,
+            status='PAID'
+        )
+
+        prev_income = prev_qs.filter(category__category_type='INCOME').aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
+        prev_expense = prev_qs.filter(category__category_type='EXPENSE').aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
+        prev_balance = prev_income - prev_expense
+
+        def calculate_mom_delta(current_val, previous_val):
+            if previous_val == Decimal('0.00'):
+                if current_val > Decimal('0.00'):
+                    return 100.0, True, False
+                elif current_val < Decimal('0.00'):
+                    return 100.0, False, False
+                return 0.0, False, True
+
+            delta = ((current_val - previous_val) / abs(previous_val)) * Decimal('100')
+            delta_float = round(float(delta), 1)
+            return abs(delta_float), delta_float >= 0, delta_float == 0
+
+        income_diff_pct, income_is_up, income_is_neutral = calculate_mom_delta(total_income, prev_income)
+        expense_diff_pct, expense_is_up, expense_is_neutral = calculate_mom_delta(total_expense, prev_expense)
+        balance_diff_pct, balance_is_up, balance_is_neutral = calculate_mom_delta(balance, prev_balance)
 
         if revenue_goal > Decimal('0.00'):
             calc_rev = float((total_income / revenue_goal) * Decimal('100'))
@@ -373,6 +417,16 @@ def dashboard_view(request):
         'expense_bar_width': expense_bar_width,
         'revenue_remaining': revenue_remaining,
         'expense_remaining': expense_remaining,
+        'prev_month_label': prev_month_label,
+        'income_diff_pct': income_diff_pct,
+        'income_is_up': income_is_up,
+        'income_is_neutral': income_is_neutral,
+        'expense_diff_pct': expense_diff_pct,
+        'expense_is_up': expense_is_up,
+        'expense_is_neutral': expense_is_neutral,
+        'balance_diff_pct': balance_diff_pct,
+        'balance_is_up': balance_is_up,
+        'balance_is_neutral': balance_is_neutral,
     }
     return render(request, 'finances/dashboard.html', context)
 
