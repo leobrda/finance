@@ -19,6 +19,19 @@ from django.template.loader import get_template
 from xhtml2pdf import pisa
 
 
+def add_months(orig_date, months_to_add):
+    """
+    Incrementa meses com segurança matemática e de calendário.
+    Trata anos bissextos e meses com 28, 29, 30 ou 31 dias sem lançar exceções.
+    Ex: 31/01 + 1 mês = 28/02 (ou 29/02 se bissexto).
+    """
+    new_year = orig_date.year + (orig_date.month - 1 + months_to_add) // 12
+    new_month = (orig_date.month - 1 + months_to_add) % 12 + 1
+    _, max_day = calendar.monthrange(new_year, new_month)
+    new_day = min(orig_date.day, max_day)
+    return date(new_year, new_month, new_day)
+
+
 @login_required
 def dashboard_view(request):
     workspaces = Workspace.objects.filter(user=request.user)
@@ -61,13 +74,55 @@ def dashboard_view(request):
             new_cat.save()
             return redirect(f"{request.path}?workspace={current_workspace.id}&year={selected_year}&month={selected_month}")
 
-    # 3. POST: Transação (Com suporte a upload de arquivos e fotos)
+    # 3. POST: Transação (Com suporte a parcelamento em lote e upload de comprovante)
     if request.method == 'POST' and 'create_transaction' in request.POST and current_workspace:
         trans_form = TransactionForm(request.POST, request.FILES, workspace=current_workspace)
         if trans_form.is_valid():
-            trans = trans_form.save(commit=False)
-            trans.workspace = current_workspace
-            trans.save()
+            raw_installments = request.POST.get('installments', '1').strip()
+            try:
+                num_installments = max(1, int(raw_installments))
+            except ValueError:
+                num_installments = 1
+
+            installment_type = request.POST.get('installment_type', 'total')
+
+            base_trans = trans_form.save(commit=False)
+            base_trans.workspace = current_workspace
+            initial_amount = base_trans.amount
+            initial_desc = base_trans.description
+            initial_date = base_trans.transaction_date
+
+            if num_installments == 1:
+                base_trans.save()
+            else:
+                # Cálculo de parcelamento com compensação de centavos na 1ª parcela
+                if installment_type == 'per_installment':
+                    part_amount = initial_amount
+                    first_amount = initial_amount
+                else:
+                    part_amount = (initial_amount / num_installments).quantize(Decimal('0.01'))
+                    first_amount = initial_amount - (part_amount * (num_installments - 1))
+
+                # Primeira parcela (01/N): herda o comprovante e status escolhido
+                base_trans.description = f"{initial_desc} (01/{num_installments:02d})"
+                base_trans.amount = first_amount
+                base_trans.save()
+
+                # Parcelas futuras (02/N até N/N): entram nos meses seguintes como PENDING
+                for i in range(1, num_installments):
+                    due_date = add_months(initial_date, i)
+                    installment_number = i + 1
+                    Transaction.objects.create(
+                        workspace=current_workspace,
+                        description=f"{initial_desc} ({installment_number:02d}/{num_installments:02d})",
+                        amount=part_amount,
+                        transaction_date=due_date,
+                        category=base_trans.category,
+                        payment_method=base_trans.payment_method,
+                        status='PENDING',
+                        notes=base_trans.notes or f"Parcela {installment_number} de {num_installments} referente à compra '{initial_desc}'."
+                    )
+
             return redirect(f"{request.path}?workspace={current_workspace.id}&year={selected_year}&month={selected_month}")
 
     # 4. POST: Metas do Mês
@@ -104,7 +159,7 @@ def dashboard_view(request):
             valid_day = min(rec.due_day, max_days)
             t_date = date(selected_year, selected_month, valid_day)
 
-            # Regra: Só vira PAID automaticamente se auto_pay estiver ativo e a data já tiver passado
+            # Regra: Só vira PAID automaticamente se auto_pay estiver ativo e a data já tiver chegado
             should_auto_pay = rec.auto_pay and (t_date <= today)
             initial_status = 'PAID' if should_auto_pay else 'PENDING'
 
@@ -524,7 +579,6 @@ def export_monthly_report_pdf(request):
     total_expense = base_qs.filter(category__category_type='EXPENSE', status='PAID').aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
     balance = total_income - total_expense
 
-    # Distribuição por categoria calculada para a tabela do relatório
     expense_cats_raw = base_qs.filter(category__category_type='EXPENSE', status='PAID') \
                               .values('category__name') \
                               .annotate(total=Sum('amount')) \
@@ -557,7 +611,6 @@ def export_monthly_report_pdf(request):
     html = template.render(context)
     result = BytesIO()
 
-    # Geração do arquivo binário PDF via xhtml2pdf
     pdf_status = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result, encoding='UTF-8')
 
     if not pdf_status.err:
