@@ -49,7 +49,6 @@ def request_password_reset_view(request):
             path = reverse('password_reset_confirm_direct', kwargs={'uidb64': uid, 'token': token})
             reset_url = request.build_absolute_uri(path)
 
-            # Configura a chave do Resend vinda do settings.py
             resend.api_key = getattr(settings, 'RESEND_API_KEY', '')
 
             try:
@@ -121,17 +120,30 @@ def profile_view(request):
 @require_POST
 def update_theme_preferences(request):
     try:
+        user_sub = getattr(request.user, 'subscription', None)
+        is_pro = user_sub.is_pro if user_sub else False
+
         data = json.loads(request.body)
         pref, _ = UserPreference.objects.get_or_create(user=request.user)
 
-        if 'accent_primary' in data and data['accent_primary']:
-            pref.accent_primary = data['accent_primary']
-
-        if 'accent_secondary' in data and data['accent_secondary']:
-            pref.accent_secondary = data['accent_secondary']
-
+        # Modo claro / escuro permanece disponível para todos
         if 'theme_mode' in data and data['theme_mode']:
             pref.theme_mode = data['theme_mode']
+
+        # Personalização de cores exclusiva para usuários PRO
+        if is_pro:
+            if 'accent_primary' in data and data['accent_primary']:
+                pref.accent_primary = data['accent_primary']
+
+            if 'accent_secondary' in data and data['accent_secondary']:
+                pref.accent_secondary = data['accent_secondary']
+        else:
+            if 'accent_primary' in data or 'accent_secondary' in data:
+                pref.save()
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Recurso Exclusivo PRO: A personalização de paletas e cores está disponível apenas nos planos Mensal e Anual.'
+                }, status=403)
 
         pref.save()
         return JsonResponse({'status': 'success', 'message': 'Preferências salvas com sucesso!'})

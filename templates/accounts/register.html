@@ -59,6 +59,16 @@
         body.dark-mode .shadow-\[2px_2px_0px_0px_rgba\(0\,0\,0\,1\)\] {
             box-shadow: 4px 4px 0px 0px rgba(255, 255, 255, 0.9) !important;
         }
+
+        /* Cor do ícone do olho com garantia contra sobrescritas */
+        .eye-icon-color {
+            color: #000000 !important;
+            stroke: #000000 !important;
+        }
+        body.dark-mode .eye-icon-color {
+            color: #FFFFFF !important;
+            stroke: #FFFFFF !important;
+        }
     </style>
 
     <!-- Injeção Imediata do Tema (Evita tela piscar ao carregar) -->
@@ -109,28 +119,28 @@
                     <input type="email" name="email" required class="w-full border-2 border-black p-2.5 sm:p-3 text-sm outline-none focus:bg-[#FFE600] focus:text-black font-bold transition">
                 </div>
 
-                <!-- Campo Senha com Olhinho -->
+                <!-- Campo Senha -->
                 <div>
                     <label class="block text-[11px] sm:text-xs font-black uppercase tracking-widest mb-1">Senha</label>
                     <div class="relative flex items-center">
-                        <input type="password" id="id_password1" name="password1" required class="w-full border-2 border-black p-2.5 sm:p-3 pr-12 text-sm outline-none focus:bg-[#FFE600] focus:text-black font-bold transition">
+                        <input type="password" id="id_password1" name="password1" required class="w-full border-2 border-black p-2.5 sm:p-3 pr-11 text-sm outline-none focus:bg-[#FFE600] focus:text-black font-bold transition">
                         <button type="button" onclick="togglePasswordVisibility('id_password1', 'eyeIconRegister1')"
-                                class="absolute right-2 px-2 py-1 text-black dark:text-white hover:opacity-70 transition z-10"
+                                class="absolute right-2.5 p-1 hover:opacity-60 transition z-10 flex items-center justify-center bg-transparent"
                                 title="Mostrar / Ocultar Senha">
-                            <i id="eyeIconRegister1" data-lucide="eye" class="w-4 h-4"></i>
+                            <i id="eyeIconRegister1" data-lucide="eye" class="w-4 h-4 stroke-[2.5] eye-icon-color"></i>
                         </button>
                     </div>
                 </div>
 
-                <!-- Campo Confirmar Senha com Olhinho -->
+                <!-- Campo Confirmar Senha -->
                 <div>
                     <label class="block text-[11px] sm:text-xs font-black uppercase tracking-widest mb-1">Confirmar Senha</label>
                     <div class="relative flex items-center">
-                        <input type="password" id="id_password2" name="password2" required class="w-full border-2 border-black p-2.5 sm:p-3 pr-12 text-sm outline-none focus:bg-[#FFE600] focus:text-black font-bold transition">
+                        <input type="password" id="id_password2" name="password2" required class="w-full border-2 border-black p-2.5 sm:p-3 pr-11 text-sm outline-none focus:bg-[#FFE600] focus:text-black font-bold transition">
                         <button type="button" onclick="togglePasswordVisibility('id_password2', 'eyeIconRegister2')"
-                                class="absolute right-2 px-2 py-1 text-black dark:text-white hover:opacity-70 transition z-10"
+                                class="absolute right-2.5 p-1 hover:opacity-60 transition z-10 flex items-center justify-center bg-transparent"
                                 title="Mostrar / Ocultar Senha">
-                            <i id="eyeIconRegister2" data-lucide="eye" class="w-4 h-4"></i>
+                            <i id="eyeIconRegister2" data-lucide="eye" class="w-4 h-4 stroke-[2.5] eye-icon-color"></i>
                         </button>
                     </div>
                 </div>
@@ -141,7 +151,7 @@
                     </div>
                 {% endif %}
 
-                <!-- Botão com Cor Forçada Inline para Garantir Legibilidade -->
+                <!-- Botão Criar Conta -->
                 <button type="submit"
                         style="color: #000000 !important; background-color: #FFE600 !important;"
                         class="w-full py-3.5 sm:py-4 border-2 border-black text-xs font-black uppercase tracking-widest mt-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition hover:opacity-90">
@@ -155,11 +165,13 @@
         </div>
     </div>
 
-    <!-- Script de Visibilidade da Senha (Olhinho) -->
+    <!-- Script de Visibilidade da Senha -->
     <script>
         function togglePasswordVisibility(inputId, iconId) {
             const input = document.getElementById(inputId);
             const icon = document.getElementById(iconId);
+
+            if (!input || !icon) return;
 
             if (input.type === 'password') {
                 input.type = 'text';

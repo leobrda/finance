@@ -57,6 +57,11 @@
             color: #000000 !important;
         }
 
+        /* Hover no botão modificar senha */
+        .btn-salvar-hover:hover {
+            color: var(--accent-primary) !important;
+        }
+
         /* Padronização Neobrutalista para os widgets de formulário */
         input[type="text"], input[type="email"], input[type="password"] {
             width: 100%;
@@ -71,6 +76,24 @@
         input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus {
             background-color: var(--accent-primary) !important;
             color: #000000 !important;
+        }
+
+        /* Ícone do olho com alto contraste */
+        .eye-icon-color {
+            color: #000000 !important;
+            stroke: #000000 !important;
+        }
+        body.dark-mode .eye-icon-color {
+            color: #FFFFFF !important;
+            stroke: #FFFFFF !important;
+        }
+
+        /* Link Esqueceu a Senha */
+        .forgot-link:hover {
+            color: #000000 !important;
+        }
+        body.dark-mode .forgot-link:hover {
+            color: #FFFFFF !important;
         }
 
         /* Regras do Modo Escuro Neobrutalista */
@@ -101,7 +124,6 @@
         body.dark-mode input[type="email"]:focus,
         body.dark-mode input[type="password"]:focus {
             background-color: #2D2D2D !important;
-            color: #FFFFFF !important;
         }
 
         body.dark-mode .shadow-\[4px_4px_0px_0px_rgba\(0\,0\,0\,1\)\],
@@ -232,16 +254,18 @@
                             <div>
                                 <div class="flex justify-between items-baseline mb-1">
                                     <label class="block text-[11px] sm:text-xs font-black uppercase tracking-wider">Senha Atual</label>
-                                    <a href="{% url 'password_reset_request' %}" class="text-[10px] font-bold uppercase text-neutral-500 hover:text-black dark:hover:text-white hover:underline" title="Redefinir sem precisar da senha antiga">
+                                    <a href="{% url 'password_reset_request' %}"
+                                       class="text-[10px] font-bold uppercase text-neutral-500 forgot-link hover:underline transition"
+                                       title="Redefinir sem precisar da senha antiga">
                                         Esqueceu a senha?
                                     </a>
                                 </div>
                                 <div class="relative flex items-center">
                                     {{ password_form.old_password }}
                                     <button type="button" onclick="togglePasswordVisibility('{{ password_form.old_password.id_for_label }}', 'eyeIconOld')"
-                                            class="absolute right-2 px-2 py-1 text-black dark:text-white hover:opacity-70 transition z-10"
+                                            class="absolute right-2.5 p-1 hover:opacity-60 transition z-10 flex items-center justify-center bg-transparent"
                                             title="Mostrar / Ocultar Senha">
-                                        <i id="eyeIconOld" data-lucide="eye" class="w-4 h-4"></i>
+                                        <i id="eyeIconOld" data-lucide="eye" class="w-4 h-4 stroke-[2.5] eye-icon-color"></i>
                                     </button>
                                 </div>
                                 {% if password_form.old_password.errors %}
@@ -255,9 +279,9 @@
                                 <div class="relative flex items-center">
                                     {{ password_form.new_password1 }}
                                     <button type="button" onclick="togglePasswordVisibility('{{ password_form.new_password1.id_for_label }}', 'eyeIconNew1')"
-                                            class="absolute right-2 px-2 py-1 text-black dark:text-white hover:opacity-70 transition z-10"
+                                            class="absolute right-2.5 p-1 hover:opacity-60 transition z-10 flex items-center justify-center bg-transparent"
                                             title="Mostrar / Ocultar Senha">
-                                        <i id="eyeIconNew1" data-lucide="eye" class="w-4 h-4"></i>
+                                        <i id="eyeIconNew1" data-lucide="eye" class="w-4 h-4 stroke-[2.5] eye-icon-color"></i>
                                     </button>
                                 </div>
                                 {% if password_form.new_password1.errors %}
@@ -271,9 +295,9 @@
                                 <div class="relative flex items-center">
                                     {{ password_form.new_password2 }}
                                     <button type="button" onclick="togglePasswordVisibility('{{ password_form.new_password2.id_for_label }}', 'eyeIconNew2')"
-                                            class="absolute right-2 px-2 py-1 text-black dark:text-white hover:opacity-70 transition z-10"
+                                            class="absolute right-2.5 p-1 hover:opacity-60 transition z-10 flex items-center justify-center bg-transparent"
                                             title="Mostrar / Ocultar Senha">
-                                        <i id="eyeIconNew2" data-lucide="eye" class="w-4 h-4"></i>
+                                        <i id="eyeIconNew2" data-lucide="eye" class="w-4 h-4 stroke-[2.5] eye-icon-color"></i>
                                     </button>
                                 </div>
                                 {% if password_form.new_password2.errors %}
@@ -282,7 +306,7 @@
                             </div>
 
                             <div class="pt-2">
-                                <button type="submit" class="w-full py-2.5 sm:py-3 bg-black text-white hover:theme-primary-bg hover:!text-black border-2 border-black text-xs font-black uppercase tracking-wider transition shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                                <button type="submit" class="w-full py-2.5 sm:py-3 bg-black text-white btn-salvar-hover border-2 border-black text-xs font-black uppercase tracking-wider transition shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                                     Modificar Senha
                                 </button>
                             </div>
@@ -298,6 +322,8 @@
         function togglePasswordVisibility(inputId, iconId) {
             const input = document.getElementById(inputId);
             const icon = document.getElementById(iconId);
+
+            if (!input || !icon) return;
 
             if (input.type === 'password') {
                 input.type = 'text';

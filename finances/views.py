@@ -5,11 +5,12 @@ from decimal import Decimal
 from datetime import date, datetime
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.http import HttpResponse
 from django.db.models import Sum, Q
 from django.urls import reverse
 
-from accounts.models import Workspace
+from accounts.models import Workspace, ExportLog
 from accounts.forms import WorkspaceForm
 from .models import Transaction, Category, MonthlyGoal, RecurringExpense
 from .forms import TransactionForm, CategoryForm, MonthlyGoalForm, RecurringExpenseForm
@@ -46,6 +47,13 @@ def landing_page_view(request):
 def dashboard_view(request):
     workspaces = Workspace.objects.filter(user=request.user)
 
+    # Identificação do plano do usuário e resolução de limites escalonados
+    user_sub = getattr(request.user, 'subscription', None)
+    is_pro = user_sub.is_pro if user_sub else False
+    max_workspaces = user_sub.max_workspaces if user_sub else 1
+    max_transactions = user_sub.max_transactions_month if user_sub else 30
+    max_categories = user_sub.max_categories if user_sub else 8
+
     workspace_id = request.GET.get('workspace')
     current_workspace = None
     if workspace_id:
@@ -66,26 +74,59 @@ def dashboard_view(request):
     filter_category = request.GET.get('cat', '').strip()
     filter_payment = request.GET.get('payment', '').strip()
 
-    # 1. POST: Workspace
+    # 1. POST: Workspace (Trava dinâmica por plano)
     if request.method == 'POST' and 'create_workspace' in request.POST:
+        if workspaces.count() >= max_workspaces:
+            messages.error(
+                request,
+                f"Limite atingido: Seu plano atual permite até {int(max_workspaces)} Espaço(s) de Gestão. "
+                "Faça upgrade para expandir ou assine o Plano Anual para ter espaços ilimitados."
+            )
+            return redirect(f"{request.path}?year={selected_year}&month={selected_month}")
+
         ws_form = WorkspaceForm(request.POST)
         if ws_form.is_valid():
             new_ws = ws_form.save(commit=False)
             new_ws.user = request.user
             new_ws.save()
+            messages.success(request, f"Espaço '{new_ws.name}' criado com sucesso!")
             return redirect(f"{request.path}?workspace={new_ws.id}&year={selected_year}&month={selected_month}")
 
-    # 2. POST: Categoria
+    # 2. POST: Categoria (Trava dinâmica: Free=8, Mensal=12, Anual=Ilimitado)
     if request.method == 'POST' and 'create_category' in request.POST and current_workspace:
+        cats_count = Category.objects.filter(workspace=current_workspace).count()
+        if cats_count >= max_categories:
+            messages.error(
+                request,
+                f"Limite atingido: Seu plano permite até {int(max_categories)} categorias por Espaço de Gestão. "
+                "Assine o Plano Anual para cadastrar categorias ilimitadas."
+            )
+            return redirect(f"{request.path}?workspace={current_workspace.id}&year={selected_year}&month={selected_month}")
+
         cat_form = CategoryForm(request.POST)
         if cat_form.is_valid():
             new_cat = cat_form.save(commit=False)
             new_cat.workspace = current_workspace
             new_cat.save()
+            messages.success(request, f"Categoria '{new_cat.name}' criada com sucesso!")
             return redirect(f"{request.path}?workspace={current_workspace.id}&year={selected_year}&month={selected_month}")
 
-    # 3. POST: Transação (Com suporte a parcelamento em lote e upload de comprovante)
+    # 3. POST: Transação (Trava dinâmica: Free=30, Mensal=45, Anual=Ilimitado)
     if request.method == 'POST' and 'create_transaction' in request.POST and current_workspace:
+        current_month_count = Transaction.objects.filter(
+            workspace=current_workspace,
+            transaction_date__year=selected_year,
+            transaction_date__month=selected_month
+        ).count()
+
+        if current_month_count >= max_transactions:
+            messages.error(
+                request,
+                f"Limite mensal atingido: Seu plano permite até {int(max_transactions)} lançamentos por mês. "
+                "Assine o Plano Anual para obter lançamentos ilimitados e relatórios completos."
+            )
+            return redirect(f"{request.path}?workspace={current_workspace.id}&year={selected_year}&month={selected_month}")
+
         trans_form = TransactionForm(request.POST, request.FILES, workspace=current_workspace)
         if trans_form.is_valid():
             raw_installments = request.POST.get('installments', '1').strip()
@@ -133,6 +174,7 @@ def dashboard_view(request):
                         notes=base_trans.notes or f"Parcela {installment_number} de {num_installments} referente à compra '{initial_desc}'."
                     )
 
+            messages.success(request, "Lançamento adicionado com sucesso!")
             return redirect(f"{request.path}?workspace={current_workspace.id}&year={selected_year}&month={selected_month}")
 
     # 4. POST: Metas do Mês
@@ -437,6 +479,8 @@ def dashboard_view(request):
         'balance_diff_pct': balance_diff_pct,
         'balance_is_up': balance_is_up,
         'balance_is_neutral': balance_is_neutral,
+        'user_subscription': user_sub,
+        'is_pro': is_pro,
     }
     return render(request, 'finances/dashboard.html', context)
 
@@ -516,6 +560,27 @@ def export_transactions_csv(request):
         year = today.year
         month = today.month
 
+    # Validação de limite mensal de exportações
+    user_sub = getattr(request.user, 'subscription', None)
+    max_exports = user_sub.max_exports_month if user_sub else 1
+
+    current_month_exports = ExportLog.objects.filter(
+        user=request.user,
+        created_at__year=today.year,
+        created_at__month=today.month
+    ).count()
+
+    if current_month_exports >= max_exports:
+        messages.error(
+            request,
+            f"Limite atingido: Seu plano permite até {int(max_exports)} exportação(ões) por mês. "
+            "Faça upgrade para o Plano Anual para obter exportações ilimitadas."
+        )
+        return redirect(f"{reverse('dashboard')}?workspace={workspace.id}&year={year}&month={month}")
+
+    # Registra o log
+    ExportLog.objects.create(user=request.user, export_type='CSV')
+
     transactions = Transaction.objects.filter(
         workspace=workspace,
         transaction_date__year=year,
@@ -560,12 +625,26 @@ def manage_categories_view(request):
     if not workspace:
         return redirect('dashboard')
 
+    user_sub = getattr(request.user, 'subscription', None)
+    is_pro = user_sub.is_pro if user_sub else False
+    max_categories = user_sub.max_categories if user_sub else 8
+
     if request.method == 'POST' and 'create_category' in request.POST:
+        cats_count = Category.objects.filter(workspace=workspace).count()
+        if cats_count >= max_categories:
+            messages.error(
+                request,
+                f"Limite atingido: Seu plano permite até {int(max_categories)} categorias por Espaço de Gestão. "
+                "Faça upgrade para o Plano Anual para cadastrar categorias ilimitadas."
+            )
+            return redirect(f"{request.path}?workspace={workspace.id}")
+
         cat_form = CategoryForm(request.POST)
         if cat_form.is_valid():
             new_cat = cat_form.save(commit=False)
             new_cat.workspace = workspace
             new_cat.save()
+            messages.success(request, f"Categoria '{new_cat.name}' criada com sucesso!")
             return redirect(f"{request.path}?workspace={workspace.id}")
 
     categories = Category.objects.filter(workspace=workspace).order_by('category_type', 'name')
@@ -579,6 +658,7 @@ def manage_categories_view(request):
         'workspace': workspace,
         'categories': categories,
         'cat_form': cat_form,
+        'is_pro': is_pro,
     })
 
 
@@ -624,6 +704,24 @@ def export_monthly_report_pdf(request):
     except (ValueError, TypeError):
         year = today.year
         month = today.month
+
+    # Validação de limite mensal de exportações
+    user_sub = getattr(request.user, 'subscription', None)
+    max_exports = user_sub.max_exports_month if user_sub else 1
+
+    current_month_exports = ExportLog.objects.filter(
+        user=request.user,
+        created_at__year=today.year,
+        created_at__month=today.month
+    ).count()
+
+    if current_month_exports >= max_exports:
+        messages.error(
+            request,
+            f"Limite atingido: Seu plano permite até {int(max_exports)} exportação(ões) por mês. "
+            "Faça upgrade para o Plano Anual para obter relatórios em PDF ilimitados."
+        )
+        return redirect(f"{reverse('dashboard')}?workspace={workspace.id}&year={year}&month={month}")
 
     month_names = {
         1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril',
@@ -678,6 +776,7 @@ def export_monthly_report_pdf(request):
     pdf_status = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result, encoding='UTF-8')
 
     if not pdf_status.err:
+        ExportLog.objects.create(user=request.user, export_type='PDF')
         filename = f"relatorio_{workspace.name.lower().replace(' ', '_')}_{month:02d}_{year}.pdf"
         response = HttpResponse(result.getvalue(), content_type='application/pdf')
         response['Content-Disposition'] = f'inline; filename="{filename}"'

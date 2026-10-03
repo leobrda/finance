@@ -190,8 +190,36 @@
                     </span>
                 </div>
 
-                <!-- Controles do Utilizador -->
                 <div class="flex items-stretch border-l-2 border-black">
+
+                    <!-- Badge do Plano & Botão de Ação / Upgrade Específico -->
+                    <div class="hidden sm:flex items-center gap-2 px-3 sm:px-4 border-r-2 border-black bg-white">
+                        {% if user_subscription.is_annual %}
+                            <!-- ASSINANTE ANUAL (ILIMITADO) -->
+                            <span class="inline-flex items-center gap-1 border-2 border-black px-2 py-0.5 bg-black text-[#FFE600] text-[10px] font-black uppercase tracking-wider font-mono shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                                ★ ANUAL ILIMITADO
+                            </span>
+                        {% elif user_subscription.is_pro %}
+                            <!-- ASSINANTE MENSAL PRO -->
+                            <span class="inline-flex items-center gap-1 border-2 border-black px-2 py-0.5 theme-primary-bg text-[10px] font-black uppercase tracking-wider font-mono shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-black">
+                                PRO MENSAL
+                            </span>
+                            <a href="{% url 'landing' %}#planos"
+                               class="border-2 border-black px-2 py-0.5 bg-emerald-300 hover:bg-black hover:text-white text-black text-[9px] font-black uppercase tracking-wider flex items-center gap-1 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] transition"
+                               title="Economize 35% e libere tudo ilimitado">
+                                <i data-lucide="zap" class="w-3 h-3 stroke-[2.5]"></i> Migrar p/ Anual
+                            </a>
+                        {% else %}
+                            <!-- CONTA GRATUITA (FREE) -->
+                            <span class="inline-flex items-center border border-black px-1.5 py-0.5 bg-stone-100 text-[10px] font-black uppercase tracking-wider font-mono text-neutral-600">
+                                FREE
+                            </span>
+                            <a href="{% url 'landing' %}#planos"
+                               class="border-2 border-black px-2.5 py-1 theme-secondary-bg hover:bg-black text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition">
+                                <i data-lucide="zap" class="w-3 h-3 stroke-[3] fill-current"></i> Upgrade
+                            </a>
+                        {% endif %}
+                    </div>
 
                     <!-- Botão Modo Privacidade (Ocultar Valores) -->
                     <button type="button" onclick="togglePrivacyMode()"
@@ -200,8 +228,8 @@
                         <i id="privacyIcon" data-lucide="eye" class="w-4 h-4"></i>
                     </button>
 
-                    <!-- Botão Modal Personalizador de Cores -->
-                    <button type="button" onclick="openThemeModal()"
+                    <!-- Botão Modal Personalizador de Cores (Com trava JS para FREE) -->
+                    <button type="button" onclick="handleThemeButtonClick()"
                             class="px-3 sm:px-4 flex items-center justify-center border-r-2 border-black bg-white neo-hover transition"
                             title="Personalizar Cores da Interface">
                         <i data-lucide="palette" class="w-4 h-4"></i>
@@ -214,17 +242,30 @@
                         <i id="themeIcon" data-lucide="moon" class="w-4 h-4"></i>
                     </button>
 
+                    <!-- Perfil com Tag Mobile Inteligente -->
                     <a href="{% url 'profile' %}"
-                       class="px-4 sm:px-6 flex items-center gap-2 border-r-2 border-black bg-white neo-hover transition text-xs font-black uppercase tracking-wider"
+                       class="px-3 sm:px-6 flex items-center gap-2 border-r-2 border-black bg-white neo-hover transition text-xs font-black uppercase tracking-wider"
                        title="Meu Perfil">
                         <i data-lucide="user" class="w-4 h-4"></i>
                         <span class="hidden md:inline">{{ request.user.first_name|default:request.user.username }}</span>
+                        <!-- Tag compacta exclusiva para celular (< sm) -->
+                        <span class="sm:hidden font-mono text-[9px] border border-black px-1 py-0.2
+                            {% if user_subscription.is_annual %}
+                                bg-black text-[#FFE600]
+                            {% elif user_subscription.is_pro %}
+                                theme-primary-bg text-black
+                            {% else %}
+                                bg-stone-200 text-neutral-700
+                            {% endif %}">
+                            {% if user_subscription.is_annual %}ANUAL{% elif user_subscription.is_pro %}MENSAL{% else %}FREE{% endif %}
+                        </span>
                     </a>
 
+                    <!-- Botão Sair -->
                     <form action="{% url 'logout' %}" method="post" class="flex">
                         {% csrf_token %}
                         <button type="submit"
-                                class="px-4 sm:px-6 flex items-center gap-2 bg-black text-white hover:theme-secondary-bg transition text-xs font-bold uppercase tracking-wider"
+                                class="px-3 sm:px-6 flex items-center gap-2 bg-black text-white hover:theme-secondary-bg transition text-xs font-bold uppercase tracking-wider"
                                 title="Sair do Sistema">
                             <span class="hidden md:inline">Sair</span>
                             <i data-lucide="log-out" class="w-4 h-4"></i>
@@ -235,6 +276,32 @@
         </header>
 
         <main class="max-w-7xl mx-auto p-3 sm:p-6 lg:p-8">
+
+            <!-- ============================================== -->
+            <!-- ALERTAS E MENSAGENS NEOBRUTALISTAS DO SISTEMA  -->
+            <!-- ============================================== -->
+            {% if messages %}
+                <div class="mb-6 sm:mb-8 space-y-3">
+                    {% for message in messages %}
+                        <div class="p-4 border-2 sm:border-4 border-black font-bold uppercase text-xs sm:text-sm flex items-start justify-between gap-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
+                            {% if message.tags == 'error' %}
+                                bg-[#FF4A22] text-white
+                            {% elif message.tags == 'success' %}
+                                bg-emerald-400 text-black
+                            {% else %}
+                                bg-[#FFE600] text-black
+                            {% endif %}">
+                            <div class="flex items-start gap-2.5">
+                                <i data-lucide="{% if message.tags == 'error' %}alert-triangle{% else %}check-circle{% endif %}" class="w-5 h-5 shrink-0 stroke-[2.5]"></i>
+                                <span>{{ message }}</span>
+                            </div>
+                            <button type="button" onclick="this.parentElement.remove()" class="p-1 hover:opacity-75 transition" title="Fechar aviso">
+                                <i data-lucide="x" class="w-4 h-4 stroke-[3]"></i>
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
 
             <!-- Barra de Controlo: Workspaces e Ações -->
             <div class="border-2 sm:border-4 border-black bg-white mb-6 sm:mb-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
@@ -389,7 +456,6 @@
                             {{ selected_month }}/{{ selected_year }}
                         </span>
                         {% if not expense_is_neutral %}
-                            <!-- Regra semântica: Despesa que sobe é alerta (rose), despesa que desce é economia (emerald) -->
                             <span class="inline-flex items-center gap-1 px-1.5 py-0.5 border border-black text-[9px] font-mono font-bold uppercase {% if expense_is_up %}bg-rose-100 text-rose-950{% else %}bg-emerald-100 text-emerald-950{% endif %}">
                                 <i data-lucide="{% if expense_is_up %}trending-up{% else %}trending-down{% endif %}" class="w-3 h-3 stroke-[2.5]"></i>
                                 {% if expense_is_up %}+{% else %}-{% endif %}{{ expense_diff_pct }}% vs {{ prev_month_label }}
@@ -960,7 +1026,7 @@
                     </h4>
                     <ul class="space-y-1.5 text-xs font-bold uppercase">
                         <li>
-                            <button type="button" onclick="openThemeModal()" class="hover:underline flex items-center gap-1.5 transition text-left">
+                            <button type="button" onclick="handleThemeButtonClick()" class="hover:underline flex items-center gap-1.5 transition text-left">
                                 <i data-lucide="palette" class="w-3.5 h-3.5"></i> Paleta de Cores
                             </button>
                         </li>
@@ -1421,8 +1487,45 @@
         });
     </script>
 
-    <!-- Motor do Customizador de Cores & Dark Mode com Sincronização no Backend -->
+    <!-- Motor do Customizador de Cores & Dark Mode com Sincronização no Backend e Trava PRO -->
     <script>
+        function handleThemeButtonClick() {
+            const isPro = {% if is_pro %}true{% else %}false{% endif %};
+            if (isPro) {
+                openThemeModal();
+            } else {
+                showPlanLimitError("Recurso Exclusivo PRO: A personalização de paletas e cores está disponível apenas nos planos Mensal e Anual. Faça upgrade para desbloquear!");
+            }
+        }
+
+        function showPlanLimitError(messageText) {
+            const mainElement = document.querySelector('main');
+            if (!mainElement) return;
+
+            let alertBox = document.getElementById('planLimitAlertBox');
+            if (!alertBox) {
+                alertBox = document.createElement('div');
+                alertBox.id = 'planLimitAlertBox';
+                alertBox.className = 'mb-6 sm:mb-8';
+                mainElement.insertBefore(alertBox, mainElement.firstChild);
+            }
+
+            alertBox.innerHTML = `
+                <div class="p-4 border-2 sm:border-4 border-black font-bold uppercase text-xs sm:text-sm flex items-start justify-between gap-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-[#FF4A22] text-white">
+                    <div class="flex items-start gap-2.5">
+                        <i data-lucide="alert-triangle" class="w-5 h-5 shrink-0 stroke-[2.5]"></i>
+                        <span>${messageText}</span>
+                    </div>
+                    <button type="button" onclick="this.parentElement.remove()" class="p-1 hover:opacity-75 transition" title="Fechar aviso">
+                        <i data-lucide="x" class="w-4 h-4 stroke-[3]"></i>
+                    </button>
+                </div>
+            `;
+
+            lucide.createIcons();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
         function openThemeModal() {
             const currentPrimary = getComputedStyle(document.documentElement).getPropertyValue('--accent-primary').trim() || '#FFE600';
             const currentSecondary = getComputedStyle(document.documentElement).getPropertyValue('--accent-secondary').trim() || '#FF4A22';
@@ -1456,6 +1559,9 @@
               .then(data => {
                   if (data.status !== 'success') {
                       console.warn("Falha ao salvar no banco:", data.message);
+                      if (data.message) {
+                          showPlanLimitError(data.message);
+                      }
                   }
               })
               .catch(err => console.error("Erro ao sincronizar tema com o banco:", err));

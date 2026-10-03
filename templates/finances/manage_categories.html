@@ -90,7 +90,6 @@
         body.dark-mode input[type="text"]:focus,
         body.dark-mode select:focus {
             background-color: #2D2D2D !important;
-            color: #FFFFFF !important;
         }
 
         body.dark-mode .shadow-\[4px_4px_0px_0px_rgba\(0\,0\,0\,1\)\],
@@ -164,6 +163,30 @@
     </header>
 
     <main class="max-w-4xl mx-auto p-3 sm:p-6 lg:p-8">
+
+        <!-- ALERTAS E MENSAGENS NEOBRUTALISTAS DO SISTEMA -->
+        {% if messages %}
+            <div class="mb-6 sm:mb-8 space-y-3">
+                {% for message in messages %}
+                    <div class="p-4 border-2 sm:border-4 border-black font-bold uppercase text-xs sm:text-sm flex items-start justify-between gap-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
+                        {% if message.tags == 'error' %}
+                            bg-[#FF4A22] text-white
+                        {% elif message.tags == 'success' %}
+                            bg-emerald-400 text-black
+                        {% else %}
+                            bg-[#FFE600] text-black
+                        {% endif %}">
+                        <div class="flex items-start gap-2.5">
+                            <i data-lucide="{% if message.tags == 'error' %}alert-triangle{% else %}check-circle{% endif %}" class="w-5 h-5 shrink-0 stroke-[2.5]"></i>
+                            <span>{{ message }}</span>
+                        </div>
+                        <button type="button" onclick="this.parentElement.remove()" class="p-1 hover:opacity-75 transition" title="Fechar aviso">
+                            <i data-lucide="x" class="w-4 h-4 stroke-[3]"></i>
+                        </button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
 
         <!-- Cabeçalho de Contexto Neobrutalista -->
         <div class="border-2 sm:border-4 border-black theme-primary-bg p-4 sm:p-6 mb-6 sm:mb-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
