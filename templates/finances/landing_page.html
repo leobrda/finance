@@ -16,16 +16,18 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;900&display=swap');
 
-        :root {
-            --accent-primary: #FFE600;
-            --accent-secondary: #FF4A22;
-            --bg-page: #F6F6F2;
+       :root {
+            --accent-primary: {{ request.user.preferences.accent_primary|default:'#FFE600' }};
+            --accent-secondary: {{ request.user.preferences.accent_secondary|default:'#FF4A22' }};
+            --bg-page: #E8E8ED; /* Tom de cinza mais aveludado e repousante */
         }
 
         body {
             font-family: 'Space Grotesk', sans-serif;
+            overflow-x: hidden;
             background-color: var(--bg-page);
             color: #000000;
+            transition: background-color 0.2s ease, color 0.2s ease;
         }
 
         .neo-box {

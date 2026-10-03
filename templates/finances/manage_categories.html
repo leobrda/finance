@@ -20,10 +20,10 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;900&display=swap');
 
-        :root {
+       :root {
             --accent-primary: {{ request.user.preferences.accent_primary|default:'#FFE600' }};
             --accent-secondary: {{ request.user.preferences.accent_secondary|default:'#FF4A22' }};
-            --bg-page: #F6F6F2;
+            --bg-page: #E8E8ED; /* Tom de cinza mais aveludado e repousante */
         }
 
         body {
