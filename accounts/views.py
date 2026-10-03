@@ -12,7 +12,7 @@ from django.contrib import messages
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.urls import reverse
-from .models import UserPreference
+from .models import UserPreference, PushSubscription
 from .forms import RegisterForm, UserProfileForm, CustomPasswordChangeForm
 from .services import setup_new_user_workspaces
 
@@ -110,9 +110,15 @@ def profile_view(request):
                 messages.success(request, "Senha alterada com sucesso!")
                 return redirect('profile')
 
+    # Status de notificações Web Push e chave pública VAPID
+    has_push = PushSubscription.objects.filter(user=request.user).exists()
+    vapid_key = getattr(settings, 'VAPID_PUBLIC_KEY', '')
+
     return render(request, 'accounts/profile.html', {
         'profile_form': profile_form,
-        'password_form': password_form
+        'password_form': password_form,
+        'has_push': has_push,
+        'vapid_public_key': vapid_key,
     })
 
 
@@ -151,3 +157,41 @@ def update_theme_preferences(request):
         return JsonResponse({'status': 'error', 'message': 'JSON inválido.'}, status=400)
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@login_required
+@require_POST
+def save_push_subscription(request):
+    """Recebe e registra no banco os dados do dispositivo para Web Push."""
+    try:
+        data = json.loads(request.body)
+        endpoint = data.get('endpoint')
+        keys = data.get('keys', {})
+        p256dh = keys.get('p256dh')
+        auth = keys.get('auth')
+
+        if not endpoint or not p256dh or not auth:
+            return JsonResponse({'status': 'error', 'message': 'Dados de inscrição incompletos.'}, status=400)
+
+        PushSubscription.objects.update_or_create(
+            endpoint=endpoint,
+            defaults={
+                'user': request.user,
+                'p256dh': p256dh,
+                'auth': auth,
+                'user_agent': request.META.get('HTTP_USER_AGENT', '')[:255]
+            }
+        )
+        return JsonResponse({'status': 'success', 'message': 'Dispositivo registrado com sucesso!'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+
+@login_required
+@require_POST
+def toggle_email_morning_notification(request):
+    """Alterna a preferência de receber o resumo matinal por e-mail."""
+    pref, _ = UserPreference.objects.get_or_create(user=request.user)
+    pref.notify_email_morning = not pref.notify_email_morning
+    pref.save(update_fields=['notify_email_morning'])
+    return JsonResponse({'status': 'success', 'enabled': pref.notify_email_morning})

@@ -41,6 +41,9 @@ class UserPreference(models.Model):
     accent_secondary = models.CharField(max_length=7, default='#FF4A22')    # Cor de despesas / alerta
     theme_mode = models.CharField(max_length=10, default='light')           # 'light' ou 'dark'
 
+    # Notificações Matinais
+    notify_email_morning = models.BooleanField(default=True, verbose_name='Resumo Matinal por E-mail')
+
     def __str__(self):
         return f"Preferências de {self.user.username}"
 
@@ -163,3 +166,21 @@ class ExportLog(models.Model):
 def create_user_subscription(sender, instance, created, **kwargs):
     if created:
         Subscription.objects.create(user=instance, plan='FREE', status='ACTIVE')
+
+
+class PushSubscription(models.Model):
+    """Inscrições de navegadores e celulares para Web Push Notifications."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='push_subscriptions')
+    endpoint = models.TextField(unique=True)
+    p256dh = models.CharField(max_length=255)
+    auth = models.CharField(max_length=255)
+    user_agent = models.CharField(max_length=255, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Inscrição Push'
+        verbose_name_plural = 'Inscrições Push'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} ({self.created_at.strftime('%d/%m/%Y %H:%M')})"

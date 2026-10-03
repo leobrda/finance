@@ -19,4 +19,7 @@ urlpatterns = [
         name='password_reset_confirm_direct'
     ),
     path('api/update-theme-preferences/', views.update_theme_preferences, name='update_theme_preferences'),
+
+    path('api/push/subscribe/', views.save_push_subscription, name='save_push_subscription'),
+    path('api/notifications/toggle-email/', views.toggle_email_morning_notification, name='toggle_email_morning'),
 ]
