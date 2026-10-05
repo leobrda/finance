@@ -24,7 +24,7 @@
         :root {
             --accent-primary: {{ request.user.preferences.accent_primary|default:'#FFE600' }};
             --accent-secondary: {{ request.user.preferences.accent_secondary|default:'#FF4A22' }};
-            --bg-page: #E8E8ED; /* Tom de cinza mais aveludado e repousante */
+            --bg-page: #E8E8ED;
         }
 
         body {
@@ -35,7 +35,6 @@
             transition: background-color 0.2s ease, color 0.2s ease;
         }
 
-        /* Classes dinâmicas de cores */
         .theme-primary-bg {
             background-color: var(--accent-primary) !important;
             color: #000000 !important;
@@ -51,15 +50,11 @@
             color: var(--accent-secondary) !important;
         }
 
-        /* Hover dinâmico no tema claro */
         .neo-hover:hover {
             background-color: var(--accent-primary) !important;
             color: #000000 !important;
         }
 
-        /* ======================================================== */
-        /* MODO PRIVACIDADE (OCULTAÇÃO DE VALORES)                  */
-        /* ======================================================== */
         body.privacy-mode .privacy-val {
             filter: blur(7px);
             user-select: none;
@@ -69,9 +64,6 @@
             filter: blur(0px) !important;
         }
 
-        /* ======================================================== */
-        /* MODO ESCURO COM ALTO CONTRASTE E LEGIBILIDADE            */
-        /* ======================================================== */
         body.dark-mode {
             background-color: #121212 !important;
             color: #FFFFFF !important;
@@ -109,7 +101,6 @@
             box-shadow: 4px 4px 0px 0px rgba(255, 255, 255, 0.9) !important;
         }
 
-        /* Correção de Textos Secundários no Dark Mode */
         body.dark-mode .text-neutral-400,
         body.dark-mode .text-neutral-500,
         body.dark-mode .text-neutral-600,
@@ -123,7 +114,6 @@
             opacity: 0.9 !important;
         }
 
-        /* Hover no Dark Mode */
         body.dark-mode .neo-hover:hover,
         body.dark-mode a.hover\:bg-neutral-200:hover,
         body.dark-mode button.hover\:bg-neutral-200:hover {
@@ -151,7 +141,6 @@
         }
     </style>
 
-    <!-- Injeção Imediata do Modo Noturno e Paleta Personalizada (Anti-FOUC) -->
     <script>
         (function() {
             const dbMode = "{{ request.user.preferences.theme_mode|default:'light' }}";
@@ -196,15 +185,15 @@
                     <div class="hidden sm:flex items-center gap-2 px-3 sm:px-4 border-r-2 border-black bg-white">
                         {% if user_subscription.is_annual %}
                             <!-- ASSINANTE ANUAL (ILIMITADO) -->
-                            <span class="inline-flex items-center gap-1 border-2 border-black px-2 py-0.5 bg-black text-[#FFE600] text-[10px] font-black uppercase tracking-wider font-mono shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                            <a href="{% url 'profile' %}" class="inline-flex items-center gap-1 border-2 border-black px-2 py-0.5 bg-black text-[#FFE600] text-[10px] font-black uppercase tracking-wider font-mono shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:opacity-90">
                                 ★ ANUAL ILIMITADO
-                            </span>
+                            </a>
                         {% elif user_subscription.is_pro %}
                             <!-- ASSINANTE MENSAL PRO -->
-                            <span class="inline-flex items-center gap-1 border-2 border-black px-2 py-0.5 theme-primary-bg text-[10px] font-black uppercase tracking-wider font-mono shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-black">
+                            <a href="{% url 'profile' %}" class="inline-flex items-center gap-1 border-2 border-black px-2 py-0.5 theme-primary-bg text-[10px] font-black uppercase tracking-wider font-mono shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-black">
                                 PRO MENSAL
-                            </span>
-                            <a href="{% url 'landing' %}#planos"
+                            </a>
+                            <a href="{% url 'pricing' %}"
                                class="border-2 border-black px-2 py-0.5 bg-emerald-300 hover:bg-black hover:text-white text-black text-[9px] font-black uppercase tracking-wider flex items-center gap-1 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] transition"
                                title="Economize 35% e libere tudo ilimitado">
                                 <i data-lucide="zap" class="w-3 h-3 stroke-[2.5]"></i> Migrar p/ Anual
@@ -214,7 +203,7 @@
                             <span class="inline-flex items-center border border-black px-1.5 py-0.5 bg-stone-100 text-[10px] font-black uppercase tracking-wider font-mono text-neutral-600">
                                 FREE
                             </span>
-                            <a href="{% url 'landing' %}#planos"
+                            <a href="{% url 'pricing' %}"
                                class="border-2 border-black px-2.5 py-1 theme-secondary-bg hover:bg-black text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition">
                                 <i data-lucide="zap" class="w-3 h-3 stroke-[3] fill-current"></i> Upgrade
                             </a>
@@ -228,7 +217,7 @@
                         <i id="privacyIcon" data-lucide="eye" class="w-4 h-4"></i>
                     </button>
 
-                    <!-- Botão Modal Personalizador de Cores (Com trava JS para FREE) -->
+                    <!-- Botão Modal Personalizador de Cores -->
                     <button type="button" onclick="handleThemeButtonClick()"
                             class="px-3 sm:px-4 flex items-center justify-center border-r-2 border-black bg-white neo-hover transition"
                             title="Personalizar Cores da Interface">
@@ -248,7 +237,6 @@
                        title="Meu Perfil">
                         <i data-lucide="user" class="w-4 h-4"></i>
                         <span class="hidden md:inline">{{ request.user.first_name|default:request.user.username }}</span>
-                        <!-- Tag compacta exclusiva para celular (< sm) -->
                         <span class="sm:hidden font-mono text-[9px] border border-black px-1 py-0.2
                             {% if user_subscription.is_annual %}
                                 bg-black text-[#FFE600]
@@ -277,9 +265,7 @@
 
         <main class="max-w-7xl mx-auto p-3 sm:p-6 lg:p-8">
 
-            <!-- ============================================== -->
-            <!-- ALERTAS E MENSAGENS NEOBRUTALISTAS DO SISTEMA  -->
-            <!-- ============================================== -->
+            <!-- ALERTAS E MENSAGENS -->
             {% if messages %}
                 <div class="mb-6 sm:mb-8 space-y-3">
                     {% for message in messages %}
@@ -496,7 +482,7 @@
                 </div>
             </div>
 
-            <!-- Linha de Previsão: Contas a Receber e Contas a Pagar (Pendentes) -->
+            <!-- Linha de Previsão -->
             <div class="grid grid-cols-1 md:grid-cols-2 border-2 border-black bg-white divide-y-2 md:divide-y-0 md:divide-x-2 divide-black mb-6 sm:mb-8">
                 <div class="p-3 sm:p-4 bg-emerald-500/10 flex items-center justify-between">
                     <div class="flex items-center gap-3">
@@ -630,9 +616,8 @@
                 </div>
             </div>
 
-            <!-- Seção de Gráficos: Distribuição de Receitas e Despesas -->
+            <!-- Gráficos -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8">
-                <!-- Fontes de Receita -->
                 <div class="border-2 border-black bg-white flex flex-col justify-between">
                     <div class="p-3 sm:p-4 border-b-2 border-black flex justify-between items-center bg-[#F6F6F2]">
                         <h3 class="text-xs font-black uppercase tracking-widest flex items-center gap-2">
@@ -657,7 +642,6 @@
                     </div>
                 </div>
 
-                <!-- Destino das Despesas -->
                 <div class="border-2 border-black bg-white flex flex-col justify-between">
                     <div class="p-3 sm:p-4 border-b-2 border-black flex justify-between items-center bg-[#F6F6F2]">
                         <h3 class="text-xs font-black uppercase tracking-widest flex items-center gap-2">
@@ -683,7 +667,7 @@
                 </div>
             </div>
 
-            <!-- Card de Histórico Semestral (Barras) -->
+            <!-- Evolução Semestral -->
             <div class="border-2 border-black bg-white mb-6 sm:mb-8">
                 <div class="p-3 sm:p-4 border-b-2 border-black flex flex-wrap justify-between items-center gap-2 bg-[#F6F6F2]">
                     <div class="flex items-center gap-2">
@@ -709,7 +693,7 @@
                 </div>
             </div>
 
-            <!-- Tabela e Lista de Lançamentos Responsiva -->
+            <!-- Extrato de Operações -->
             <div class="border-2 sm:border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                 <div class="p-3 sm:p-4 border-b-2 border-black flex flex-wrap justify-between items-center gap-2 bg-[#F6F6F2]">
                     <h3 class="text-xs font-black uppercase tracking-widest">
@@ -720,7 +704,6 @@
                             {{ transactions|length }} Lançamentos
                         </span>
 
-                        <!-- Botão Relatório PDF Neobrutalista -->
                         <a href="{% url 'export_monthly_report_pdf' %}?workspace={{ current_workspace.id }}&year={{ selected_year }}&month={{ selected_month }}"
                            target="_blank"
                            style="color: #000000 !important;"
@@ -728,7 +711,6 @@
                             <i data-lucide="file-text" style="color: #000000 !important;" class="w-3.5 h-3.5 stroke-[2.5]"></i> <span>Relatório PDF</span>
                         </a>
 
-                        <!-- Botão Baixar Planilha -->
                         <a href="{% url 'export_transactions_csv' %}?workspace={{ current_workspace.id }}&year={{ selected_year }}&month={{ selected_month }}"
                            class="flex items-center gap-1.5 px-3 py-1 bg-white neo-hover border-2 border-black text-[10px] font-black uppercase tracking-wider transition">
                             <i data-lucide="download" class="w-3.5 h-3.5 stroke-[2.5]"></i> <span class="hidden sm:inline">Baixar </span>Planilha
@@ -793,7 +775,7 @@
                     </div>
                 </form>
 
-                <!-- 1. VISTA MÓVEL (CARDS) -->
+                <!-- Vista Móvel -->
                 <div class="block sm:hidden divide-y-2 divide-black">
                     {% for t in transactions %}
                     <div class="p-3.5 bg-white hover:bg-neutral-50 transition flex flex-col gap-2.5 {% if t.status == 'PENDING' %}border-l-4 border-l-amber-400{% endif %}">
@@ -874,7 +856,7 @@
                     {% endfor %}
                 </div>
 
-                <!-- 2. VISTA DESKTOP/TABLET (TABELA COMPLETA) -->
+                <!-- Vista Desktop -->
                 <div class="hidden sm:block overflow-x-auto">
                     <table class="w-full text-left border-collapse min-w-[700px]">
                         <thead>
@@ -975,14 +957,10 @@
         </main>
     </div>
 
-    <!-- ============================================== -->
-    <!-- RODAPÉ NEOBRUTALISTA DO SISTEMA (FOOTER)       -->
-    <!-- ============================================== -->
+    <!-- RODAPÉ -->
     <footer class="mt-12 sm:mt-16 border-t-2 sm:border-t-4 border-black bg-white transition-colors">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 sm:gap-8 pb-8 border-b-2 border-black">
-
-                <!-- Coluna 1: Marca & Descrição -->
                 <div class="md:col-span-2 space-y-3">
                     <div class="flex items-center gap-2">
                         <span class="text-2xl font-black tracking-tighter uppercase">FIN.</span>
@@ -995,7 +973,6 @@
                     </p>
                 </div>
 
-                <!-- Coluna 2: Navegação Rápida -->
                 <div class="space-y-2">
                     <h4 class="text-xs font-black uppercase tracking-widest text-neutral-500 border-b border-black/20 pb-1">
                         Navegação
@@ -1012,6 +989,11 @@
                             </a>
                         </li>
                         <li>
+                            <a href="{% url 'pricing' %}" class="hover:underline flex items-center gap-1.5 transition">
+                                <i data-lucide="zap" class="w-3.5 h-3.5"></i> Planos & Upgrade
+                            </a>
+                        </li>
+                        <li>
                             <a href="{% url 'manage_categories' %}?workspace={{ current_workspace.id }}" class="hover:underline flex items-center gap-1.5 transition">
                                 <i data-lucide="tag" class="w-3.5 h-3.5"></i> Categorias do Espaço
                             </a>
@@ -1019,7 +1001,6 @@
                     </ul>
                 </div>
 
-                <!-- Coluna 3: Utilidades & Atalhos -->
                 <div class="space-y-2">
                     <h4 class="text-xs font-black uppercase tracking-widest text-neutral-500 border-b border-black/20 pb-1">
                         Preferências
@@ -1042,14 +1023,10 @@
                         </li>
                     </ul>
                 </div>
-
             </div>
 
-            <!-- Faixa Inferior de Copyright -->
             <div class="pt-6 flex flex-col sm:flex-row justify-between items-center gap-3 text-[11px] font-mono font-bold uppercase text-neutral-500">
-                <div>
-                    © 2026 FIN. FINANCE — Todos os direitos reservados.
-                </div>
+                <div>© 2026 FIN. FINANCE — Todos os direitos reservados.</div>
                 <div class="flex items-center gap-3">
                     <span>Espaço: <strong class="text-current">{{ current_workspace.name }}</strong></span>
                 </div>
@@ -1057,9 +1034,7 @@
         </div>
     </footer>
 
-    <!-- ============================================== -->
-    <!-- MODAL CUSTOMIZADOR DE CORES COM TEXTO LEGÍVEL  -->
-    <!-- ============================================== -->
+    <!-- MODAL CUSTOMIZADOR DE CORES -->
     <div id="modalThemeColors" class="hidden fixed inset-0 bg-black/75 flex items-center justify-center p-3 sm:p-4 z-50">
         <div class="bg-white border-2 sm:border-4 border-black max-w-sm w-full p-4 sm:p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center pb-3 border-b-2 border-black mb-4">
@@ -1070,7 +1045,6 @@
                 <button type="button" onclick="closeThemeModal()" class="font-black text-xl hover:theme-secondary-text">&times;</button>
             </div>
 
-            <!-- 1. Paletas Prontas (1 Clique) -->
             <div class="mb-5">
                 <label class="block text-[10px] font-black uppercase tracking-widest text-neutral-500 mb-2">
                     1. Paletas Rápidas (1 Clique)
@@ -1108,7 +1082,6 @@
                 </div>
             </div>
 
-            <!-- 2. Seletores Livres (Custom Picker) -->
             <div class="mb-5 border-t-2 border-black pt-4">
                 <label class="block text-[10px] font-black uppercase tracking-widest text-neutral-500 mb-2">
                     2. Escolha Livremente
@@ -1127,7 +1100,6 @@
                 </div>
             </div>
 
-            <!-- Ações do Modal -->
             <div class="flex gap-2 border-t-2 border-black pt-4">
                 <button type="button" onclick="resetDefaultTheme()"
                         class="w-1/2 py-2.5 border-2 border-black text-xs font-black uppercase neo-hover transition">
@@ -1142,15 +1114,13 @@
         </div>
     </div>
 
-    <!-- Modais Anteriores Preservados -->
+    <!-- Modais Auxiliares -->
     <div id="modalRecurrings" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-3 sm:p-4 z-50">
         <div class="bg-white border-2 sm:border-4 border-black max-w-2xl w-full p-4 sm:p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center pb-3 border-b-2 border-black mb-4 sm:mb-6">
-                <div>
-                    <h3 class="text-xs sm:text-sm font-black uppercase tracking-wider flex items-center gap-2">
-                        <i data-lucide="repeat" class="w-4 h-4"></i> Contas Fixas & Assinaturas Mensais
-                    </h3>
-                </div>
+                <h3 class="text-xs sm:text-sm font-black uppercase tracking-wider flex items-center gap-2">
+                    <i data-lucide="repeat" class="w-4 h-4"></i> Contas Fixas & Assinaturas Mensais
+                </h3>
                 <button type="button" onclick="document.getElementById('modalRecurrings').classList.add('hidden')" class="font-black text-2xl hover:theme-secondary-text">&times;</button>
             </div>
 
@@ -1208,11 +1178,9 @@
                     </div>
                 </div>
                 <div class="border-2 border-black p-3 bg-[#F6F6F2] flex items-center justify-between gap-3">
-                    <div>
-                        <label for="{{ recurring_form.auto_pay.id_for_label }}" class="text-xs font-black uppercase tracking-wider block cursor-pointer">
-                            Baixa Automática no Vencimento
-                        </label>
-                    </div>
+                    <label for="{{ recurring_form.auto_pay.id_for_label }}" class="text-xs font-black uppercase tracking-wider block cursor-pointer">
+                        Baixa Automática no Vencimento
+                    </label>
                     <div>{{ recurring_form.auto_pay }}</div>
                 </div>
                 <div>
@@ -1266,7 +1234,7 @@
         </div>
     </div>
 
-    <!-- Modal Nova Transação (Com Parcelamento Automático) -->
+    <!-- Modal Nova Transação -->
     <div id="modalTransaction" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-3 sm:p-4 z-50">
         <div class="bg-white border-2 sm:border-4 border-black max-w-md w-full p-4 sm:p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center pb-3 border-b-2 border-black mb-4">
@@ -1292,7 +1260,6 @@
                     </div>
                 </div>
 
-                <!-- Bloco de Parcelamento Automático -->
                 <div class="border-2 border-black p-3 bg-[#F6F6F2] space-y-2">
                     <div class="flex items-center justify-between">
                         <label class="text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5">
@@ -1458,7 +1425,7 @@
         });
     </script>
 
-    <!-- Motor de Modo Privacidade (Ocultar Valores) -->
+    <!-- Modo Privacidade -->
     <script>
         function applyPrivacyMode(enable) {
             const icon = document.getElementById('privacyIcon');
@@ -1487,7 +1454,7 @@
         });
     </script>
 
-    <!-- Motor do Customizador de Cores & Dark Mode com Sincronização no Backend e Trava PRO -->
+    <!-- Customizador de Cores & Dark Mode com Sincronização -->
     <script>
         function handleThemeButtonClick() {
             const isPro = {% if is_pro %}true{% else %}false{% endif %};
@@ -1638,7 +1605,7 @@
         });
     </script>
 
-    <!-- Registro do Service Worker (PWA) -->
+    <!-- Registro do Service Worker -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -1649,7 +1616,7 @@
         }
     </script>
 
-    <!-- Script de Pré-visualização de Parcelamento Automático -->
+    <!-- Parcelamento Automático -->
     <script>
         function updateInstallmentPreview() {
             const countInput = document.getElementById('installmentsCount');
@@ -1684,7 +1651,7 @@
         });
     </script>
 
-    <!-- Gráficos Chart.js Integrados e Reativos à Paleta de Cores -->
+    <!-- Chart.js -->
     <script>
         let incomeChart = null;
         let expensesChart = null;
@@ -1712,7 +1679,6 @@
             const dynamicExpensesColors = [secondaryColor, primaryColor, '#000000', '#737373', '#00F0FF', '#A3E635'];
             const dynamicIncomeColors = ['#10B981', primaryColor, '#00F0FF', '#000000', '#6366F1', '#EC4899'];
 
-            // 1. Receitas
             if (incomeData.length > 0) {
                 const ctxInc = document.getElementById('incomeChart').getContext('2d');
                 if (incomeChart) incomeChart.destroy();
@@ -1773,7 +1739,6 @@
                 });
             }
 
-            // 2. Despesas
             if (chartData.length > 0) {
                 const ctxExp = document.getElementById('expensesChart').getContext('2d');
                 if (expensesChart) expensesChart.destroy();
@@ -1834,7 +1799,6 @@
                 });
             }
 
-            // 3. Semestral
             const ctxHistory = document.getElementById('historyBarChart').getContext('2d');
             if (historyBarChart) historyBarChart.destroy();
             historyBarChart = new Chart(ctxHistory, {

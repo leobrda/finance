@@ -106,6 +106,20 @@
         <div class="p-4 sm:p-8">
             <form method="post" class="space-y-3 sm:space-y-4">
                 {% csrf_token %}
+                <input type="hidden" name="plan_intent" value="{{ plan_intent|default:'' }}">
+
+                {% if plan_intent == 'annual' %}
+                    <div class="border-2 border-black bg-[#FFE600] p-2.5 text-xs font-black uppercase text-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center gap-2">
+                        <i data-lucide="zap" class="w-4 h-4 stroke-[3]"></i>
+                        <span>Plano Escolhido: Anual PRO (R$ 79,90/ano)</span>
+                    </div>
+                {% elif plan_intent == 'monthly' %}
+                    <div class="border-2 border-black bg-[#FFE600] p-2.5 text-xs font-black uppercase text-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center gap-2">
+                        <i data-lucide="zap" class="w-4 h-4 stroke-[3]"></i>
+                        <span>Plano Escolhido: Mensal PRO (R$ 9,90/mês)</span>
+                    </div>
+                {% endif %}
+
                 <div>
                     <label class="block text-[11px] sm:text-xs font-black uppercase tracking-widest mb-1">Nome</label>
                     <input type="text" name="first_name" required class="w-full border-2 border-black p-2.5 sm:p-3 text-sm outline-none focus:bg-[#FFE600] focus:text-black font-bold transition">
@@ -155,7 +169,9 @@
                 <button type="submit"
                         style="color: #000000 !important; background-color: #FFE600 !important;"
                         class="w-full py-3.5 sm:py-4 border-2 border-black text-xs font-black uppercase tracking-widest mt-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition hover:opacity-90">
-                    <span style="color: #000000 !important;">Criar Conta e Espaços →</span>
+                    <span style="color: #000000 !important;">
+                        {% if plan_intent %}Prosseguir para Pagamento →{% else %}Criar Conta e Espaços →{% endif %}
+                    </span>
                 </button>
             </form>
 

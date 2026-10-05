@@ -2,18 +2,22 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.landing_page_view, name='landing'),
-    path('dashboard/', views.dashboard_view, name='dashboard'),
+    # http://127.0.0.1:8000/dashboard/
+    path('', views.dashboard_view, name='dashboard'),
+
+    # Transações e extratos
     path('transacao/<int:pk>/editar/', views.edit_transaction_view, name='edit_transaction'),
     path('transacao/<int:pk>/excluir/', views.delete_transaction_view, name='delete_transaction'),
     path('transacao/<int:pk>/status/', views.toggle_transaction_status, name='toggle_transaction_status'),
     path('exportar/csv/', views.export_transactions_csv, name='export_transactions_csv'),
-    # Rotas de gestão de categorias
+    path('transactions/report-pdf/', views.export_monthly_report_pdf, name='export_monthly_report_pdf'),
+
+    # Gestão de Categorias
     path('categorias/', views.manage_categories_view, name='manage_categories'),
     path('categorias/<int:pk>/editar/', views.edit_category_view, name='edit_category'),
     path('categorias/<int:pk>/excluir/', views.delete_category_view, name='delete_category'),
-    # Rotas de Despesas Recorrentes & Assinaturas
+
+    # Despesas Recorrentes & Assinaturas
     path('recorrentes/criar/', views.create_recurring_expense_view, name='create_recurring_expense'),
     path('recorrentes/<int:pk>/excluir/', views.delete_recurring_expense_view, name='delete_recurring_expense'),
-    path('transactions/report-pdf/', views.export_monthly_report_pdf, name='export_monthly_report_pdf'),
 ]

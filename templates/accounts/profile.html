@@ -25,7 +25,7 @@
         :root {
             --accent-primary: {{ request.user.preferences.accent_primary|default:'#FFE600' }};
             --accent-secondary: {{ request.user.preferences.accent_secondary|default:'#FF4A22' }};
-            --bg-page: #E8E8ED; /* Tom de cinza mais aveludado e repousante */
+            --bg-page: #E8E8ED;
         }
 
         body {
@@ -36,7 +36,6 @@
             transition: background-color 0.2s ease, color 0.2s ease;
         }
 
-        /* Classes dinâmicas de cores */
         .theme-primary-bg {
             background-color: var(--accent-primary) !important;
             color: #000000 !important;
@@ -57,12 +56,10 @@
             color: #000000 !important;
         }
 
-        /* Hover no botão modificar senha */
         .btn-salvar-hover:hover {
             color: var(--accent-primary) !important;
         }
 
-        /* Padronização Neobrutalista para os widgets de formulário */
         input[type="text"], input[type="email"], input[type="password"] {
             width: 100%;
             border: 2px solid #000;
@@ -78,7 +75,6 @@
             color: #000000 !important;
         }
 
-        /* Ícone do olho com alto contraste */
         .eye-icon-color {
             color: #000000 !important;
             stroke: #000000 !important;
@@ -88,7 +84,6 @@
             stroke: #FFFFFF !important;
         }
 
-        /* Link Esqueceu a Senha */
         .forgot-link:hover {
             color: #000000 !important;
         }
@@ -96,7 +91,6 @@
             color: #FFFFFF !important;
         }
 
-        /* Regras do Modo Escuro Neobrutalista */
         body.dark-mode {
             background-color: #121212 !important;
             color: #FFFFFF !important;
@@ -143,7 +137,6 @@
         }
     </style>
 
-    <!-- Injeção Imediata do Modo Noturno e Paleta Personalizada (Anti-FOUC) -->
     <script>
         (function() {
             const dbMode = "{{ request.user.preferences.theme_mode|default:'light' }}";
@@ -173,10 +166,14 @@
                     <span class="text-[9px] sm:text-xs font-black uppercase tracking-widest border border-black px-1.5 py-0.5 theme-primary-bg font-mono">
                         PERFIL
                     </span>
+                    {% if request.user.subscription.is_pro %}
+                        <span class="text-[9px] sm:text-xs font-black uppercase tracking-widest border border-black px-1.5 py-0.5 bg-black text-[#FFE600] font-mono shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                            ★ PRO
+                        </span>
+                    {% endif %}
                 </div>
 
                 <div class="flex items-center gap-2 sm:gap-3">
-                    <!-- Botão Alternador de Tema Escuro / Claro -->
                     <button type="button" onclick="toggleDarkModeProfile()"
                             class="p-2 border-2 border-black bg-white neo-hover transition flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
                             title="Alternar Modo Claro / Noturno">
@@ -204,6 +201,139 @@
                     {% endfor %}
                 </div>
             {% endif %}
+
+            <!-- STATUS DO PLANO E ASSINATURA -->
+            <div class="border-2 sm:border-4 border-black bg-white p-4 sm:p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] mb-6">
+                <div class="border-b-2 border-black pb-3 mb-4 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="zap" class="w-4 h-4"></i>
+                        <h2 class="text-xs font-black uppercase tracking-widest">Plano & Assinatura</h2>
+                    </div>
+                    {% if request.user.subscription.is_pro %}
+                        <span class="text-xs font-mono font-black border-2 border-black bg-[#FFE600] px-2 py-0.5 uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                            PRO ATIVO
+                        </span>
+                    {% else %}
+                        <span class="text-xs font-mono font-black border-2 border-black bg-neutral-200 text-neutral-600 px-2 py-0.5 uppercase">
+                            FREE
+                        </span>
+                    {% endif %}
+                </div>
+
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <p class="text-base sm:text-lg font-black uppercase">
+                            {{ request.user.subscription.get_plan_display|default:"Plano Gratuito" }}
+                        </p>
+                        {% if request.user.subscription.is_pro %}
+                            <p class="text-xs font-bold text-neutral-600 font-mono mt-0.5">
+                                Vencimento / Expiração: {{ request.user.subscription.expires_at|date:"d/m/Y" }}
+                            </p>
+                        {% else %}
+                            <p class="text-xs font-bold text-neutral-500 mt-0.5">
+                                Limite de 1 Workspace e 30 transações mensais.
+                            </p>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        {% if request.user.subscription.is_pro %}
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 border-2 border-black bg-emerald-300 text-black text-xs font-black uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                                <i data-lucide="check" class="w-4 h-4 stroke-[3]"></i> Acesso Ilimitado Liberado
+                            </span>
+                        {% else %}
+                            <a href="{% url 'pricing' %}" class="inline-block px-4 py-2 border-2 border-black bg-[#FFE600] hover:bg-black hover:text-white font-black text-xs uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition">
+                                Fazer Upgrade PRO →
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- PERSONALIZAÇÃO DE PALETAS (EXCLUSIVO PRO) -->
+            <div class="border-2 sm:border-4 border-black bg-white p-4 sm:p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] mb-6">
+                <div class="border-b-2 border-black pb-3 mb-4 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="palette" class="w-4 h-4"></i>
+                        <h2 class="text-xs font-black uppercase tracking-widest">Paleta & Cores de Destaque</h2>
+                    </div>
+                    {% if not request.user.subscription.is_pro %}
+                        <span class="text-[9px] font-mono border border-black bg-black text-white px-1.5 py-0.5 font-bold uppercase">Exclusivo PRO</span>
+                    {% endif %}
+                </div>
+
+                {% if request.user.subscription.is_pro %}
+                    <p class="text-xs font-bold uppercase text-neutral-600 mb-3">Escolha um preset neobrutalista ou monte sua própria combinação:</p>
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-4">
+                        <button type="button" onclick="applyPresetPalette('#FFE600', '#FF4A22')"
+                                class="p-2 border-2 border-black bg-white flex items-center justify-between text-[11px] font-black uppercase hover:opacity-80 transition shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                            <span>Amarelo</span>
+                            <div class="flex gap-1">
+                                <span class="w-3.5 h-3.5 border border-black bg-[#FFE600]"></span>
+                                <span class="w-3.5 h-3.5 border border-black bg-[#FF4A22]"></span>
+                            </div>
+                        </button>
+                        <button type="button" onclick="applyPresetPalette('#00F0FF', '#7000FF')"
+                                class="p-2 border-2 border-black bg-white flex items-center justify-between text-[11px] font-black uppercase hover:opacity-80 transition shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                            <span>Cyber</span>
+                            <div class="flex gap-1">
+                                <span class="w-3.5 h-3.5 border border-black bg-[#00F0FF]"></span>
+                                <span class="w-3.5 h-3.5 border border-black bg-[#7000FF]"></span>
+                            </div>
+                        </button>
+                        <button type="button" onclick="applyPresetPalette('#10B981', '#047857')"
+                                class="p-2 border-2 border-black bg-white flex items-center justify-between text-[11px] font-black uppercase hover:opacity-80 transition shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                            <span>Esmeralda</span>
+                            <div class="flex gap-1">
+                                <span class="w-3.5 h-3.5 border border-black bg-[#10B981]"></span>
+                                <span class="w-3.5 h-3.5 border border-black bg-[#047857]"></span>
+                            </div>
+                        </button>
+                        <button type="button" onclick="applyPresetPalette('#FF2E93', '#FFE600')"
+                                class="p-2 border-2 border-black bg-white flex items-center justify-between text-[11px] font-black uppercase hover:opacity-80 transition shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                            <span>Pink</span>
+                            <div class="flex gap-1">
+                                <span class="w-3.5 h-3.5 border border-black bg-[#FF2E93]"></span>
+                                <span class="w-3.5 h-3.5 border border-black bg-[#FFE600]"></span>
+                            </div>
+                        </button>
+                        <button type="button" onclick="applyPresetPalette('#FF7A00', '#000000')"
+                                class="p-2 border-2 border-black bg-white flex items-center justify-between text-[11px] font-black uppercase hover:opacity-80 transition shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                            <span>Laranja</span>
+                            <div class="flex gap-1">
+                                <span class="w-3.5 h-3.5 border border-black bg-[#FF7A00]"></span>
+                                <span class="w-3.5 h-3.5 border border-black bg-[#000000]"></span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t-2 border-black">
+                        <div class="flex items-center justify-between p-3 border-2 border-black bg-neutral-50">
+                            <span class="text-xs font-black uppercase">Cor Primária</span>
+                            <div class="flex items-center gap-2">
+                                <input type="color" id="primaryColorPicker" value="{{ request.user.preferences.accent_primary|default:'#FFE600' }}"
+                                       onchange="updateCustomColors()" class="w-8 h-8 border-2 border-black cursor-pointer bg-transparent">
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between p-3 border-2 border-black bg-neutral-50">
+                            <span class="text-xs font-black uppercase">Cor Secundária</span>
+                            <div class="flex items-center gap-2">
+                                <input type="color" id="secondaryColorPicker" value="{{ request.user.preferences.accent_secondary|default:'#FF4A22' }}"
+                                       onchange="updateCustomColors()" class="w-8 h-8 border-2 border-black cursor-pointer bg-transparent">
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="p-4 bg-neutral-100 border-2 border-black flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <p class="text-xs font-bold uppercase text-neutral-600">
+                            Personalize as cores primárias e de destaque da interface no plano PRO.
+                        </p>
+                        <a href="{% url 'pricing' %}" class="px-4 py-2 border-2 border-black bg-[#FFE600] font-black text-xs uppercase shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                            Ver Planos PRO →
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                 <!-- Informações Pessoais -->
@@ -255,7 +385,6 @@
                             {% csrf_token %}
                             <input type="hidden" name="change_password" value="1">
 
-                            <!-- Senha Atual com Olhinho -->
                             <div>
                                 <div class="flex justify-between items-baseline mb-1">
                                     <label class="block text-[11px] sm:text-xs font-black uppercase tracking-wider">Senha Atual</label>
@@ -278,7 +407,6 @@
                                 {% endif %}
                             </div>
 
-                            <!-- Nova Senha com Olhinho -->
                             <div>
                                 <label class="block text-[11px] sm:text-xs font-black uppercase tracking-wider mb-1">Nova Senha</label>
                                 <div class="relative flex items-center">
@@ -294,7 +422,6 @@
                                 {% endif %}
                             </div>
 
-                            <!-- Confirmar Nova Senha com Olhinho -->
                             <div>
                                 <label class="block text-[11px] sm:text-xs font-black uppercase tracking-wider mb-1">Confirmar Nova Senha</label>
                                 <div class="relative flex items-center">
@@ -320,7 +447,7 @@
                 </div>
             </div>
 
-            <!-- Seção Neobrutalista de Resumo Matinal & Notificações -->
+            <!-- Seção de Resumo Matinal & Notificações -->
             <div class="mt-6 sm:mt-8 border-2 sm:border-4 border-black bg-white p-4 sm:p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
                 <div class="border-b-2 border-black pb-3 mb-4 flex items-center justify-between">
                     <div class="flex items-center gap-2">
@@ -331,7 +458,7 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <!-- 1. Notificação por E-mail (Resend) -->
+                    <!-- Resumo por E-mail (Resend) -->
                     <div class="border-2 border-black p-3.5 bg-[#F6F6F2] flex items-center justify-between gap-3">
                         <div>
                             <span class="text-xs font-black uppercase block">Resumo por E-mail</span>
@@ -343,7 +470,7 @@
                         </button>
                     </div>
 
-                    <!-- 2. Notificação Web Push (Navegador / PWA) -->
+                    <!-- Notificação Web Push (PWA) -->
                     <div class="border-2 border-black p-3.5 bg-[#F6F6F2] flex items-center justify-between gap-3">
                         <div>
                             <span class="text-xs font-black uppercase block">Alerta no Celular (PWA)</span>
@@ -361,7 +488,7 @@
         </main>
     </div>
 
-    <!-- Script de Visibilidade de Senha (Olhinho) -->
+    <!-- Script de Visibilidade de Senha -->
     <script>
         function togglePasswordVisibility(inputId, iconId) {
             const input = document.getElementById(inputId);
@@ -380,11 +507,41 @@
         }
     </script>
 
-    <!-- Motor de Tema e Sincronização no Backend -->
+    <!-- Motor de Tema, Paleta e Sincronização -->
     <script>
-        function syncThemeWithBackend(isDark) {
-            const primary = getComputedStyle(document.documentElement).getPropertyValue('--accent-primary').trim();
-            const secondary = getComputedStyle(document.documentElement).getPropertyValue('--accent-secondary').trim();
+        function applyPresetPalette(primary, secondary) {
+            document.documentElement.style.setProperty('--accent-primary', primary);
+            document.documentElement.style.setProperty('--accent-secondary', secondary);
+
+            const pPicker = document.getElementById('primaryColorPicker');
+            const sPicker = document.getElementById('secondaryColorPicker');
+            if (pPicker) pPicker.value = primary;
+            if (sPicker) sPicker.value = secondary;
+
+            localStorage.setItem('fin_accent_primary', primary);
+            localStorage.setItem('fin_accent_secondary', secondary);
+
+            const isDark = document.body.classList.contains('dark-mode');
+            syncThemeWithBackend(isDark, primary, secondary);
+        }
+
+        function updateCustomColors() {
+            const primary = document.getElementById('primaryColorPicker').value;
+            const secondary = document.getElementById('secondaryColorPicker').value;
+
+            document.documentElement.style.setProperty('--accent-primary', primary);
+            document.documentElement.style.setProperty('--accent-secondary', secondary);
+
+            localStorage.setItem('fin_accent_primary', primary);
+            localStorage.setItem('fin_accent_secondary', secondary);
+
+            const isDark = document.body.classList.contains('dark-mode');
+            syncThemeWithBackend(isDark, primary, secondary);
+        }
+
+        function syncThemeWithBackend(isDark, primaryColor, secondaryColor) {
+            const primary = primaryColor || getComputedStyle(document.documentElement).getPropertyValue('--accent-primary').trim();
+            const secondary = secondaryColor || getComputedStyle(document.documentElement).getPropertyValue('--accent-secondary').trim();
             const mode = isDark ? 'dark' : 'light';
 
             fetch("{% url 'update_theme_preferences' %}", {
@@ -436,9 +593,8 @@
         });
     </script>
 
-    <!-- Gerenciamento de Notificações (E-mail & Web Push PWA) -->
+    <!-- Notificações (E-mail & Web Push PWA) -->
     <script>
-        // 1. Toggle do Resumo por E-mail
         function toggleEmailNotification() {
             fetch("{% url 'toggle_email_morning' %}", {
                 method: "POST",
@@ -461,7 +617,6 @@
             .catch(err => console.error("Erro ao alternar notificação de e-mail:", err));
         }
 
-        // 2. Auxiliar para conversão da chave pública VAPID
         const vapidPublicKey = "{{ vapid_public_key|default:'' }}";
 
         function urlBase64ToUint8Array(base64String) {
@@ -475,7 +630,6 @@
             return outputArray;
         }
 
-        // 3. Ativar Web Push Notifications
         async function enablePushNotifications() {
             if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
                 alert('Seu navegador ou dispositivo não possui suporte a notificações Web Push.');
@@ -524,7 +678,7 @@
         }
     </script>
 
-    <!-- Registro do Service Worker (PWA) -->
+    <!-- Registro do Service Worker -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {

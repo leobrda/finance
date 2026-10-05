@@ -1,6 +1,7 @@
 import resend
 import json
-from django.http import JsonResponse
+from datetime import date, timedelta
+from django.http import JsonResponse, HttpResponse
 from django.conf import settings
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, update_session_auth_hash
@@ -8,18 +9,23 @@ from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.urls import reverse
-from .models import UserPreference, PushSubscription
+
+from .models import UserPreference, PushSubscription, Subscription
 from .forms import RegisterForm, UserProfileForm, CustomPasswordChangeForm
 from .services import setup_new_user_workspaces
+from .services.payment_service import get_mp_sdk, create_pix_payment_annual, create_monthly_subscription_preference
 
 
 def register_view(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
+
+    plan_intent = request.GET.get('plan') or request.POST.get('plan_intent', '')
 
     if request.method == 'POST':
         form = RegisterForm(request.POST)
@@ -27,11 +33,21 @@ def register_view(request):
             user = form.save()
             setup_new_user_workspaces(user)
             login(request, user)
+
+            # Redirecionamento direto ao checkout caso o usuário tenha clicado em um plano na landing page
+            if plan_intent == 'annual':
+                return redirect('checkout_annual_pix')
+            elif plan_intent == 'monthly':
+                return redirect('checkout_monthly')
+
             return redirect('dashboard')
     else:
         form = RegisterForm()
 
-    return render(request, 'accounts/register.html', {'form': form})
+    return render(request, 'accounts/register.html', {
+        'form': form,
+        'plan_intent': plan_intent
+    })
 
 
 def request_password_reset_view(request):
@@ -110,7 +126,6 @@ def profile_view(request):
                 messages.success(request, "Senha alterada com sucesso!")
                 return redirect('profile')
 
-    # Status de notificações Web Push e chave pública VAPID
     has_push = PushSubscription.objects.filter(user=request.user).exists()
     vapid_key = getattr(settings, 'VAPID_PUBLIC_KEY', '')
 
@@ -132,11 +147,9 @@ def update_theme_preferences(request):
         data = json.loads(request.body)
         pref, _ = UserPreference.objects.get_or_create(user=request.user)
 
-        # Modo claro / escuro permanece disponível para todos
         if 'theme_mode' in data and data['theme_mode']:
             pref.theme_mode = data['theme_mode']
 
-        # Personalização de cores exclusiva para usuários PRO
         if is_pro:
             if 'accent_primary' in data and data['accent_primary']:
                 pref.accent_primary = data['accent_primary']
@@ -162,7 +175,6 @@ def update_theme_preferences(request):
 @login_required
 @require_POST
 def save_push_subscription(request):
-    """Recebe e registra no banco os dados do dispositivo para Web Push."""
     try:
         data = json.loads(request.body)
         endpoint = data.get('endpoint')
@@ -190,8 +202,130 @@ def save_push_subscription(request):
 @login_required
 @require_POST
 def toggle_email_morning_notification(request):
-    """Alterna a preferência de receber o resumo matinal por e-mail."""
     pref, _ = UserPreference.objects.get_or_create(user=request.user)
     pref.notify_email_morning = not pref.notify_email_morning
     pref.save(update_fields=['notify_email_morning'])
     return JsonResponse({'status': 'success', 'enabled': pref.notify_email_morning})
+
+
+# ============================================================
+# CHECKOUT & PLANOS MERCADO PAGO
+# ============================================================
+
+@login_required
+def pricing_view(request):
+    """Renderiza a página neobrutalista de comparação de planos."""
+    sub, _ = Subscription.objects.get_or_create(user=request.user)
+    return render(request, 'accounts/pricing.html', {
+        'subscription': sub
+    })
+
+
+@login_required
+def checkout_monthly_view(request):
+    """Inicia o checkout do plano Mensal PRO (R$ 9,90)."""
+    result = create_monthly_subscription_preference(request.user, request)
+    if result.get('success') and result.get('init_point'):
+        return redirect(result['init_point'])
+
+    messages.error(request, f"Mercado Pago: {result.get('error', 'Erro ao iniciar assinatura mensal')}")
+    return render(request, 'accounts/checkout_pix.html', {
+        'pix_data': result,
+        'plan_name': 'Mensal PRO (R$ 9,90/mês)'
+    })
+
+
+@login_required
+def checkout_annual_pix_view(request):
+    """Inicia o checkout do plano Anual PRO (R$ 79,90) via Pix/Preferência."""
+    result = create_pix_payment_annual(request.user, request)
+    if result.get('success') and result.get('init_point'):
+        return redirect(result['init_point'])
+
+    messages.error(request, f"Mercado Pago: {result.get('error', 'Erro ao gerar checkout Pix')}")
+    return render(request, 'accounts/checkout_pix.html', {
+        'pix_data': result,
+        'plan_name': 'Anual PRO (R$ 79,90/ano)'
+    })
+
+
+@login_required
+def simulate_pro_activation(request):
+    """Rota de conveniência para desenvolvimento: ativa o plano ANUAL PRO instantaneamente."""
+    sub, _ = Subscription.objects.get_or_create(user=request.user)
+    sub.plan = 'ANNUAL_PRO'
+    sub.status = 'ACTIVE'
+    sub.starts_at = date.today()
+    sub.expires_at = date.today() + timedelta(days=365)
+    sub.gateway_subscription_id = 'SIMULATED_PRO_LOCAL'
+    sub.save()
+    messages.success(request, "🎉 Sucesso! Sua conta foi atualizada para o Plano Anual PRO!")
+    return redirect('profile')
+
+
+@csrf_exempt
+def mercadopago_webhook(request):
+    """Webhook para confirmação em tempo real de pagamentos Pix e assinaturas do Mercado Pago."""
+    if request.method != 'POST':
+        return HttpResponse(status=405)
+
+    topic = request.GET.get('topic') or request.GET.get('type')
+    resource_id = request.GET.get('id') or request.GET.get('data.id')
+
+    if not resource_id:
+        try:
+            body_data = json.loads(request.body)
+            resource_id = body_data.get('data', {}).get('id')
+            topic = body_data.get('type') or topic
+        except Exception:
+            pass
+
+    if not resource_id:
+        return HttpResponse(status=200)
+
+    try:
+        sdk = get_mp_sdk()
+
+        # 1. Notificação de Pagamento Pix / Cartão Único
+        if topic == 'payment':
+            payment_info = sdk.payment().get(resource_id).get('response', {})
+            status = payment_info.get('status')
+            ext_ref = payment_info.get('external_reference', '')
+
+            if status == 'approved' and ext_ref.startswith('USER_'):
+                parts = ext_ref.split('_')
+                user_id = int(parts[1])
+                plan_type = 'ANNUAL_PRO' if 'ANNUAL' in ext_ref else 'MONTHLY_PRO'
+
+                sub = Subscription.objects.filter(user_id=user_id).first()
+                if sub:
+                    sub.plan = plan_type
+                    sub.status = 'ACTIVE'
+                    sub.starts_at = date.today()
+                    sub.expires_at = date.today() + (
+                        timedelta(days=365) if plan_type == 'ANNUAL_PRO' else timedelta(days=30))
+                    sub.gateway_customer_id = str(payment_info.get('payer', {}).get('id', ''))
+                    sub.gateway_subscription_id = str(resource_id)
+                    sub.save()
+
+        # 2. Notificação de Assinatura Recorrente (Preapproval)
+        elif topic in ['subscription_preapproval', 'preapproval']:
+            preapproval_info = sdk.preapproval().get(resource_id).get('response', {})
+            status = preapproval_info.get('status')
+            ext_ref = preapproval_info.get('external_reference', '')
+
+            if status == 'authorized' and ext_ref.startswith('USER_'):
+                user_id = int(ext_ref.split('_')[1])
+                sub = Subscription.objects.filter(user_id=user_id).first()
+                if sub:
+                    sub.plan = 'MONTHLY_PRO'
+                    sub.status = 'ACTIVE'
+                    sub.starts_at = date.today()
+                    sub.expires_at = date.today() + timedelta(days=30)
+                    sub.gateway_subscription_id = str(resource_id)
+                    sub.save()
+
+    except Exception as e:
+        print(f"Erro no webhook do Mercado Pago: {e}")
+
+    return HttpResponse(status=200)

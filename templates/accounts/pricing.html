@@ -1,0 +1,119 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planos & Upgrade — FIN. FINANCE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;900&display=swap');
+        body { font-family: 'Space Grotesk', sans-serif; background-color: #E8E8ED; }
+    </style>
+</head>
+<body class="min-h-screen text-black p-4 sm:p-8 flex flex-col justify-between">
+
+    <div class="max-w-5xl mx-auto w-full">
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-6 mb-8 border-b-4 border-black">
+            <a href="{% url 'dashboard' %}" class="text-3xl font-black tracking-tighter uppercase">FIN.</a>
+            <a href="{% url 'dashboard' %}" class="px-4 py-2 border-2 border-black bg-white hover:bg-black hover:text-white font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition">
+                ← Voltar ao App
+            </a>
+        </div>
+
+        <div class="text-center max-w-xl mx-auto mb-10">
+            <span class="text-xs font-mono font-black border-2 border-black bg-[#FFE600] px-2 py-0.5 uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                Upgrade Imediato
+            </span>
+            <h1 class="text-3xl sm:text-4xl font-black uppercase tracking-tight mt-3">Eleve o controle do seu dinheiro</h1>
+            <p class="text-xs sm:text-sm font-bold text-neutral-600 uppercase mt-2">Sem amarras. Cancele quando quiser com 1 clique.</p>
+        </div>
+
+        <!-- Grid de Planos -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+
+            <!-- PLANO FREE -->
+            <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-black uppercase text-neutral-500">Gratuito</span>
+                    <h2 class="text-2xl font-black uppercase mt-1">Free</h2>
+                    <div class="my-4 font-mono">
+                        <span class="text-3xl font-black">R$ 0</span>
+                        <span class="text-xs font-bold text-neutral-500">/ sempre</span>
+                    </div>
+                    <ul class="text-xs font-bold space-y-3 border-t-2 border-black pt-4">
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600 stroke-[3]"></i> 1 Workspace (Pessoal)</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600 stroke-[3]"></i> Até 30 transações/mês</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600 stroke-[3]"></i> Resumo diário matinal</li>
+                        <li class="flex items-center gap-2 text-neutral-400 line-through"><i data-lucide="x" class="w-4 h-4 stroke-[3]"></i> Paletas Neobrutalistas PRO</li>
+                    </ul>
+                </div>
+                <div class="pt-6">
+                    <button disabled class="w-full py-3 border-2 border-black bg-neutral-200 text-neutral-500 font-black text-xs uppercase cursor-not-allowed">
+                        {% if not subscription.is_pro %}Seu Plano Atual{% else %}Plano Gratuito{% endif %}
+                    </button>
+                </div>
+            </div>
+
+            <!-- PLANO MENSAL PRO -->
+            <div class="border-4 border-black bg-white p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between relative">
+                <span class="absolute -top-3.5 right-4 bg-black text-white text-[10px] font-black uppercase px-2 py-0.5 border border-black">
+                    Recorrente
+                </span>
+                <div>
+                    <span class="text-xs font-black uppercase text-neutral-500">Flexibilidade</span>
+                    <h2 class="text-2xl font-black uppercase mt-1">Mensal PRO</h2>
+                    <div class="my-4 font-mono">
+                        <span class="text-3xl font-black">R$ 9,90</span>
+                        <span class="text-xs font-bold text-neutral-500">/ mês no cartão</span>
+                    </div>
+                    <ul class="text-xs font-bold space-y-3 border-t-2 border-black pt-4">
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600 stroke-[3]"></i> Workspaces Ilimitados</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600 stroke-[3]"></i> Lançamentos Ilimitados</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600 stroke-[3]"></i> Personalização Total de Cores</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600 stroke-[3]"></i> Cobrança automática mensal</li>
+                    </ul>
+                </div>
+                <div class="pt-6">
+                    <a href="{% url 'checkout_monthly' %}" class="block text-center w-full py-3.5 border-2 border-black bg-[#FFE600] text-black hover:bg-black hover:text-white font-black text-xs uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition">
+                        ASSINAR MENSAL →
+                    </a>
+                </div>
+            </div>
+
+            <!-- PLANO ANUAL PRO (MELHOR CUSTO-BENEFÍCIO) -->
+            <div class="border-4 border-black bg-[#FFE600] p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between relative">
+                <span class="absolute -top-3.5 right-4 bg-black text-[#FFE600] text-[10px] font-black uppercase px-2 py-0.5 border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                    Economize 33% • PIX
+                </span>
+                <div>
+                    <span class="text-xs font-black uppercase text-black">Acesso Anual</span>
+                    <h2 class="text-2xl font-black uppercase mt-1">Anual PRO</h2>
+                    <div class="my-4 font-mono">
+                        <span class="text-3xl font-black">R$ 79,90</span>
+                        <span class="text-xs font-bold text-black">/ ano à vista</span>
+                    </div>
+                    <p class="text-[11px] font-mono font-bold bg-white border border-black p-1.5 mb-4 text-center">
+                        Equivalente a apenas <strong>R$ 6,65/mês</strong>
+                    </p>
+                    <ul class="text-xs font-bold space-y-3 border-t-2 border-black pt-4">
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-black stroke-[3]"></i> Todos os benefícios do PRO</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-black stroke-[3]"></i> Pagamento instantâneo via PIX</li>
+                        <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-black stroke-[3]"></i> 1 ano inteiro liberado</li>
+                    </ul>
+                </div>
+                <div class="pt-6">
+                    <a href="{% url 'checkout_annual_pix' %}" class="block text-center w-full py-3.5 border-2 border-black bg-black text-white hover:bg-white hover:text-black font-black text-xs uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition">
+                        PAGAR COM PIX →
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>lucide.createIcons();</script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Checkout — FIN. FINANCE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;900&display=swap');
+        body { font-family: 'Space Grotesk', sans-serif; background-color: #E8E8ED; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-md w-full border-4 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+
+        <div class="flex justify-between items-center border-b-2 border-black pb-3 mb-4">
+            <h1 class="text-sm font-black uppercase tracking-wider">CHECKOUT MERCADO PAGO</h1>
+            <span class="text-[10px] font-mono font-bold bg-[#FFE600] border border-black px-2 py-0.5 uppercase">
+                {{ plan_name|default:"PLANO PRO" }}
+            </span>
+        </div>
+
+        {% if pix_data.success and pix_data.init_point %}
+            <p class="text-xs font-bold uppercase mb-4 text-neutral-600">Redirecionando para o ambiente seguro do Mercado Pago...</p>
+            <a href="{{ pix_data.init_point }}" class="block text-center w-full py-3 border-2 border-black bg-[#FFE600] text-black font-black text-xs uppercase shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                Ir para o Checkout Oficial →
+            </a>
+        {% else %}
+            <div class="border-2 border-black p-3 bg-rose-100 text-rose-950 text-xs font-bold uppercase mb-4">
+                <p class="font-black">Ambiente Local (Desenvolvimento):</p>
+                <p class="font-mono text-[11px] mt-1">{{ pix_data.error|default:"Credencial em modo sandbox requer simulação local." }}</p>
+            </div>
+
+            <p class="text-xs font-bold text-neutral-600 uppercase mb-3">
+                No ambiente local, você pode testar a ativação da assinatura instantaneamente no banco de dados:
+            </p>
+
+            <a href="{% url 'simulate_pro_activation' %}" class="block text-center w-full py-3 border-2 border-black bg-[#FFE600] text-black hover:bg-black hover:text-white font-black text-xs uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition mb-3">
+                ⚡ Simular Pagamento Aprovado (Ativar PRO)
+            </a>
+
+            <a href="{% url 'pricing' %}" class="block text-center w-full py-2.5 border-2 border-black bg-white hover:bg-neutral-100 text-black text-xs font-black uppercase">
+                ← Voltar aos Planos
+            </a>
+        {% endif %}
+    </div>
+</body>
+</html>

@@ -22,4 +22,12 @@ urlpatterns = [
 
     path('api/push/subscribe/', views.save_push_subscription, name='save_push_subscription'),
     path('api/notifications/toggle-email/', views.toggle_email_morning_notification, name='toggle_email_morning'),
+
+    # MONETIZAÇÃO & MERCADO PAGO
+    path('planos/', views.pricing_view, name='pricing'),
+    path('checkout/mensal/', views.checkout_monthly_view, name='checkout_monthly'),
+    path('checkout/anual-pix/', views.checkout_annual_pix_view, name='checkout_annual_pix'),
+    path('api/webhooks/mercadopago/', views.mercadopago_webhook, name='mercadopago_webhook'),
+
+    path('simular-ativacao-pro/', views.simulate_pro_activation, name='simulate_pro_activation'),
 ]
