@@ -9,11 +9,28 @@ def get_mp_sdk():
     return mercadopago.SDK(access_token)
 
 
+def _get_base_url(request):
+    host = request.get_host()
+    # Em produção (Vercel) sempre força https://
+    if not any(h in host for h in ['127.0.0.1', 'localhost']):
+        return f"https://{host}"
+    return request.build_absolute_uri('/')[:-1]
+
+
+def _get_redirect_url(response, access_token):
+    # Se estiver usando token de teste oficial (TEST-...), usa sandbox
+    if access_token.startswith('TEST-'):
+        return response.get("sandbox_init_point") or response.get("init_point")
+    # Caso use credenciais de produção (APP_USR-...), usa init_point padrão
+    return response.get("init_point") or response.get("sandbox_init_point")
+
+
 def create_pix_payment_annual(user, request):
     """
     Cria a Preferência oficial de pagamento no Mercado Pago para o Plano Anual (R$ 79,90).
     Abre o Checkout Pro nativo com suporte a PIX, Cartão e Boleto.
     """
+    access_token = getattr(settings, 'MERCADOPAGO_ACCESS_TOKEN', '')
     sdk = get_mp_sdk()
 
     payer_email = user.email if (user.email and '@' in user.email and not user.email.endswith('@testuser.com')) else f"user_{user.id}@testuser.com"
@@ -37,10 +54,9 @@ def create_pix_payment_annual(user, request):
         "external_reference": f"USER_{user.id}_PLAN_ANNUAL",
     }
 
-    # Se for domínio público com SSL (produção), ativa o auto_return e back_urls locais
     host = request.get_host()
     if not any(h in host for h in ['127.0.0.1', 'localhost']):
-        base_url = request.build_absolute_uri('/')[:-1]
+        base_url = _get_base_url(request)
         preference_data["back_urls"] = {
             "success": f"{base_url}/auth/perfil/?status=payment_success",
             "failure": f"{base_url}/planos/?status=payment_failure",
@@ -55,7 +71,7 @@ def create_pix_payment_annual(user, request):
         return {
             "success": True,
             "preference_id": response.get("id"),
-            "init_point": response.get("sandbox_init_point") or response.get("init_point"),
+            "init_point": _get_redirect_url(response, access_token),
         }
 
     return {
@@ -68,6 +84,7 @@ def create_monthly_subscription_preference(user, request):
     """
     Cria a Preferência oficial de checkout para o Plano Mensal PRO (R$ 9,90).
     """
+    access_token = getattr(settings, 'MERCADOPAGO_ACCESS_TOKEN', '')
     sdk = get_mp_sdk()
 
     payer_email = user.email if (user.email and '@' in user.email and not user.email.endswith('@testuser.com')) else f"user_{user.id}@testuser.com"
@@ -93,7 +110,7 @@ def create_monthly_subscription_preference(user, request):
 
     host = request.get_host()
     if not any(h in host for h in ['127.0.0.1', 'localhost']):
-        base_url = request.build_absolute_uri('/')[:-1]
+        base_url = _get_base_url(request)
         preference_data["back_urls"] = {
             "success": f"{base_url}/auth/perfil/?status=payment_success",
             "failure": f"{base_url}/planos/?status=payment_failure",
@@ -108,7 +125,7 @@ def create_monthly_subscription_preference(user, request):
         return {
             "success": True,
             "preference_id": response.get("id"),
-            "init_point": response.get("sandbox_init_point") or response.get("init_point"),
+            "init_point": _get_redirect_url(response, access_token),
         }
 
     return {
