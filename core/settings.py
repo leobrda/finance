@@ -107,18 +107,16 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
-# Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 
-# Garante que a pasta static local só entra se existir
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [STATIC_DIR] if os.path.exists(STATIC_DIR) else []
 
-# WhiteNoise serve diretamente daqui
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles_storage')
 
-# Evita quebrar a aplicação caso falte algum ficheiro de manifesto no admin
+# Permite que o WhiteNoise encontre e sirva os arquivos mesmo sem manifesto estrito
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+WHITENOISE_USE_FINDERS = True
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
