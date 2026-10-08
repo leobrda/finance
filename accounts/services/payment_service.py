@@ -17,12 +17,16 @@ def _get_base_url(request):
     return request.build_absolute_uri('/')[:-1]
 
 
-def _get_redirect_url(response, access_token):
+"""def _get_redirect_url(response, access_token):
     # Se estiver usando token de teste oficial (TEST-...), usa sandbox
     if access_token.startswith('TEST-'):
         return response.get("sandbox_init_point") or response.get("init_point")
     # Caso use credenciais de produção (APP_USR-...), usa init_point padrão
-    return response.get("init_point") or response.get("sandbox_init_point")
+    return response.get("init_point") or response.get("sandbox_init_point")"""
+
+def _get_redirect_url(response, access_token):
+    # Enquanto estiver a testar com credenciais de teste, prioriza sempre o sandbox_init_point
+    return response.get("sandbox_init_point") or response.get("init_point")
 
 
 def create_pix_payment_annual(user, request):
